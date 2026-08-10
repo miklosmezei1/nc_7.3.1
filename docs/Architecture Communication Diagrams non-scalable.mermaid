@@ -1,0 +1,73 @@
+flowchart LR
+    INET(["☁️ Internet\n(Clients)"])
+
+    subgraph AIO["Enterprise-AIO Helm Chart — Non-Scalable (all bundled)"]
+        APACHE["Apache + Caddy\n:443 LoadBalancer\n(TLS termination)"]
+
+        subgraph CORE["Core Services"]
+            direction TB
+            NEXTCLOUD["Nextcloud\n:9000"]
+            MGMT["Nextcloud Management\n:9001"]
+            NOTIFY["Notify-Push\n:7867"]
+        end
+
+        subgraph STORES["Bundled Data Stores"]
+            direction TB
+            DB[("PostgreSQL\n:5432")]
+            REDIS[("Redis\n:6379")]
+        end
+
+        subgraph OPT["Optional Services"]
+            direction TB
+            CLAMAV["ClamAV\n:3310"]
+            COLLABORA["Collabora Online\n:9980"]
+            ONLYOFFICE["OnlyOffice\n:80"]
+            IMAGINARY["Imaginary\n:9000"]
+            FTS["Elasticsearch\n:9200"]
+            WHITEBOARD["Whiteboard\n:3002"]
+            TALK["Talk HPB + TURN\n:3478 LoadBalancer\n:8081 internal"]
+            RECORDING["Talk-Recording\n:1234"]
+        end
+    end
+
+    subgraph EXT["External Infrastructure & Optional Services"]
+        direction TB
+        STORAGE[("NFS / Object Storage\nS3 / Swift\n(user data)")]
+        HARP["HaRP ExApp Daemon\n(optional, separate chart)"]
+    end
+
+    INET -- "① HTTPS :443 🔒" --> APACHE
+    INET -- "② STUN/TURN :3478 TCP+UDP 🔒" --> TALK
+
+    APACHE -- "③ FastCGI :9000 🌐" --> NEXTCLOUD
+    APACHE -- "④ HTTP :7867 🌐" --> NOTIFY
+    APACHE -- "⑤ HTTP :9980 🌐" --> COLLABORA
+    APACHE -- "⑥ HTTP :80 🌐" --> ONLYOFFICE
+    APACHE -- "⑦ HTTP :8081 🌐" --> TALK
+
+    NEXTCLOUD -- "⑧ PostgreSQL :5432 🌐" --> DB
+    NEXTCLOUD -- "⑨ Redis :6379 🌐" --> REDIS
+    NEXTCLOUD -- "⑩ clamd :3310 🌐" --> CLAMAV
+    NEXTCLOUD -- "⑪ HTTP :9000 🌐" --> IMAGINARY
+    NEXTCLOUD -- "⑫ HTTP :9200 🌐" --> FTS
+    NEXTCLOUD -- "⑬ HTTP :9980 🌐" --> COLLABORA
+    NEXTCLOUD -- "⑭ HTTP :80 🌐" --> ONLYOFFICE
+    NEXTCLOUD -- "⑮ HTTP :3002 🌐" --> WHITEBOARD
+    NEXTCLOUD -- "⑯ S3 🔒\n(OBJECTSTORE_S3_PORT)" --> STORAGE
+
+    MGMT -- "⑱ PostgreSQL :5432 🌐" --> DB
+    MGMT -- "⑲ Redis :6379 🌐" --> REDIS
+
+    NOTIFY -- "㉑ HTTP :9001 🌐" --> MGMT
+    NOTIFY -- "㉒ Redis :6379 🌐" --> REDIS
+
+    WHITEBOARD -- "㉓ Redis :6379 🌐" --> REDIS
+    WHITEBOARD -- "㉔ HTTPS :443 🔒" --> APACHE
+
+    COLLABORA -- "㉕ HTTPS :443 🔒" --> APACHE
+    ONLYOFFICE -- "㉖ HTTPS :443 🔒" --> APACHE
+
+    TALK -- "㉗ HTTPS :443 🔒" --> APACHE
+
+    RECORDING -- "㉘ HTTP :8081 🌐" --> TALK
+    RECORDING -- "㉙ HTTPS :443 🔒" --> APACHE

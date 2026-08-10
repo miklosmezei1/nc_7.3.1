@@ -1,0 +1,38 @@
+flowchart LR
+    subgraph NC["Nextcloud Containers"]
+        APP["Nextcloud\n(PHP-FPM + Nextcloud Management)"]
+        CLAM["ClamAV\n(freshclam — every ~2 h)"]
+    end
+
+    subgraph CLOUD["Nextcloud Cloud Services"]
+        LOOKUP["lookup.nextcloud.com\n(federated sharing)"]
+        PUSH["push-notifications.nextcloud.com\n(mobile push relay)"]
+        CLOUD_NC["cloud.nextcloud.com\n(subscription validation)"]
+        ARCHIVE["download.nextcloud.com\n(enterprise archive)"]
+        APPSTORE["apps.nextcloud.com\n(app store)"]
+        GITHUB["github.com\n(app ZIPs)"]
+        CLAMDB["database.clamav.net\n(virus signatures)"]
+    end
+
+    subgraph INFRA["Enterprise Infrastructure"]
+        SMTP["SMTP Server"]
+        LDAP["LDAP / Active Directory"]
+        IMAP["IMAP Server"]
+        SAML["SAML / OIDC IdP"]
+        EXTSTOR["External Storage\n(SMB / SFTP / FTP / WebDAV)"]
+        AI["External AI Provider\n(user-configured)"]
+    end
+
+    APP -- "E-1 HTTPS\nAIRGAPPED disables" --> LOOKUP
+    APP -- "E-2 HTTPS\nAIRGAPPED disables" --> PUSH
+    APP -- "E-3 HTTPS\nAIRGAPPED disables" --> CLOUD_NC
+    APP -- "E-4 HTTPS\nAIRGAPPED / APP_STORE_URL:no disables" --> ARCHIVE
+    APP -- "E-4 HTTPS\nAIRGAPPED / APP_STORE_URL:no disables" --> APPSTORE
+    APP -- "E-4 HTTPS\nAIRGAPPED / APP_STORE_URL:no disables" --> GITHUB
+    CLAM -- "E-5 HTTPS\nno chart toggle" --> CLAMDB
+    APP -- "E-6 SMTP SMTP_PORT ⚠️\nSMTP_HOST / SMTP_SECURE" --> SMTP
+    APP -- "E-7 LDAP/LDAPS ⚠️\nuser-configured" --> LDAP
+    APP -- "E-8 IMAP/IMAPS ⚠️\nuser-configured" --> IMAP
+    APP -- "E-9 HTTPS\nuser-configured" --> SAML
+    APP -- "E-10 SMB/SFTP/FTP/WebDAV ⚠️\nuser-configured" --> EXTSTOR
+    APP -- "E-11 HTTP/HTTPS ⚠️\nuser-configured" --> AI

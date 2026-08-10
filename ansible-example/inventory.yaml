@@ -1,0 +1,6 @@
+cluster:
+  children:
+    server:
+      hosts:
+        # Replace the ip address with the one of your Ubuntu VM
+        192.168.122.46:

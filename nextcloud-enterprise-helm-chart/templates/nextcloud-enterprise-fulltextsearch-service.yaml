@@ -1,0 +1,19 @@
+{{- if and (eq (.Values.FULLTEXTSEARCH_HOST | default "nextcloud-enterprise-fulltextsearch") "nextcloud-enterprise-fulltextsearch") (eq .Values.FULLTEXTSEARCH_ENABLED "yes") }}
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: nextcloud-enterprise-fulltextsearch
+  name: nextcloud-enterprise-fulltextsearch
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  ipFamilyPolicy: PreferDualStack
+  ports:
+    - name: "9200"
+      port: 9200
+      targetPort: 9200
+  selector:
+    io.kompose.service: nextcloud-enterprise-fulltextsearch
+{{- end }}

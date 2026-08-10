@@ -1,0 +1,39 @@
+name: Update Container
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron:  '00 10 * * *'
+  push:
+    branches:
+    - main
+    paths:
+    - 'Containers/update-container.sh'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-container:
+    name: update container
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: update helm chart
+        run: |
+            sudo bash Containers/update-container.sh
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v7
+        with:
+          commit-message: Container Updates
+          signoff: true
+          title: Container Updates
+          body: Automated Container Updates for the Containers. It can be merged if it looks good at any time which will automatically create new containers and push them to docker hub.
+          labels: dependencies, 3. to review
+          milestone: next
+          branch: aio-container-update
+          token: ${{ secrets.GITHUB_TOKEN }}

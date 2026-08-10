@@ -1,0 +1,44 @@
+name: docs-update
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron:  '00 12 * * *'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  run_docs_update:
+    name: Run docs-update script
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      with:
+        persist-credentials: false
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      with:
+        repository: 'nextcloud-gmbh/portal.nextcloud.com'
+        token: '${{ secrets.NEXTCLOUD_RELEASES_PACKAGES_TOKEN }}'
+        path: 'portal.nextcloud.com'
+        persist-credentials: false
+
+    - name: Run docs-update script
+      run: |
+        set -x
+        mkdir -p docs
+        rm -f docs/*
+        cp "portal.nextcloud.com/content/Scalability/Enterprise AIO/"* docs/
+        rm -r portal.nextcloud.com
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v7
+      with:
+        commit-message: docs-update automated change
+        signoff: true
+        title: Docs dependency update
+        body: Automated docs update
+        labels: documentation, 3. to review
+        milestone: next
+        branch: docs-update

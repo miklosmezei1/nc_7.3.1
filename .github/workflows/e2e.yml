@@ -1,0 +1,211 @@
+name: E2E tests
+
+on:
+  pull_request:
+    paths:
+      - nextcloud-enterprise-helm-chart/values.yaml
+      - nextcloud-enterprise-helm-chart/Chart.yaml
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - nextcloud-enterprise-helm-chart/Chart.yaml
+
+permissions:
+  contents: read
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest # Kind Cluster fails to install on 'self-hosted'
+
+    env:
+      # The admin password / shared secret, used both to seed the chart values
+      # and by the Playwright login test. Single source of truth for the job.
+      NEXTCLOUD_PASSWORD: "!#$%^&*()@_\"'😉"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Install Helm
+        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
+        with:
+          version: v3.11.1
+
+      - name: Add dependency chart repos
+        run: cd nextcloud-enterprise-helm-chart && helm dependency build
+
+      - name: Create kind cluster
+        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1.14.0
+
+      # Ref https://github.com/kubernetes-sigs/kind/issues/1487#issuecomment-2211072952
+      - name: Patch kind's local-path-provisioner for RWX PVCs
+        run: |
+          kubectl patch configmap/local-path-config \
+            -n local-path-storage \
+            --type merge \
+            -p '{"data":{"config.json":"{\"sharedFileSystemPath\":\"/var/local-path-provisioner\"}"}}'
+
+      - name: Install yq
+        run: |
+          wget -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+
+      - name: Adjust values
+        run: |
+          # Use the Go-based mikefarah yq explicitly; strenv() injects the
+          # special-character password without any shell quoting and yq always
+          # emits it as a properly quoted scalar.
+          yq -i '
+            (.DATABASE_PASSWORD,
+             .EUROOFFICE_SECRET,
+             .FULLTEXTSEARCH_PASSWORD,
+             .IMAGINARY_SECRET,
+             .NEXTCLOUD_PASSWORD,
+             .RECORDING_SECRET,
+             .REDIS_PASSWORD,
+             .SIGNALING_SECRET,
+             .TALK_INTERNAL_SECRET,
+             .TURN_SECRET,
+             .WHITEBOARD_SECRET) = strenv(NEXTCLOUD_PASSWORD) |
+            .IMAGINARY_ENABLED = "yes" |
+            .WHITEBOARD_ENABLED = "yes" |
+            .NC_DOMAIN = "nextcloud.local" |
+            .NAMESPACE_DISABLED = "yes" |
+            .APACHE_HOST = "nextcloud-enterprise-nginx" |
+            .VPA_ENABLED = "no" |
+            .nginx.enabled = true
+          ' nextcloud-enterprise-helm-chart/values.yaml
+          cat nextcloud-enterprise-helm-chart/values.yaml
+
+      - name: Install chart
+        run: helm install -f nextcloud-enterprise-helm-chart/values.yaml eaio nextcloud-enterprise-helm-chart
+
+      - name: Run test for Nextcloud
+        run: |
+          set -x
+          kubectl cluster-info --context kind-chart-testing
+          kubectl config set-context kind-chart-testing
+
+          kubectl get deployments
+
+          while true; do
+            kubectl get pods
+            kubectl logs deployment/nextcloud-enterprise-nextcloud-management --all-pods=true || true
+            replicas="$(kubectl get deployment/nextcloud-enterprise-nextcloud -o=jsonpath='{.status.readyReplicas}')"
+            if [ -n "$replicas" ] && [ "$replicas" -gt 0 ]; then
+              break
+            fi
+            sleep 30
+          done
+
+          kubectl get pods
+          kubectl logs deployment/nextcloud-enterprise-nginx --all-pods=true || true
+          sleep 10
+          kubectl run status-test --rm --attach --image=alpine -- sh -c 'apk add curl && curl --connect-to nextcloud.local:80:nextcloud-enterprise-nginx:80 http://nextcloud.local/status.php' | grep -E '"installed"\s*:\s*true'
+
+      - name: Check all pods are healthy
+        run: |
+          set -x
+          echo "=== Final pod status ==="
+          kubectl get pods -o wide
+
+          echo "=== Checking for pods in error states ==="
+          BAD_PODS=$(kubectl get pods --no-headers | awk '$3 ~ /^(CrashLoopBackOff|Error|OOMKilled|ImagePullBackOff|ErrImagePull|CreateContainerError|InvalidImageName)$/ {print}')
+          if [ -n "$BAD_PODS" ]; then
+            echo "ERROR: The following pods are in an error state:"
+            echo "$BAD_PODS"
+            echo ""
+            kubectl get pods --no-headers | awk '$3 ~ /^(CrashLoopBackOff|Error|OOMKilled|ImagePullBackOff|ErrImagePull|CreateContainerError|InvalidImageName)$/ {print $1}' | while read -r pod; do
+              echo "=== kubectl describe pod $pod ==="
+              kubectl describe pod "$pod"
+              echo "=== kubectl logs $pod ==="
+              kubectl logs "$pod" --all-containers=true --tail=100 || true
+            done
+            exit 1
+          fi
+
+          echo "=== Checking all containers within Running pods are ready ==="
+          NOT_READY=$(kubectl get pods --no-headers | awk '$3 == "Running" { split($2, a, "/"); if (a[1] != a[2]) print }')
+          if [ -n "$NOT_READY" ]; then
+            echo "ERROR: The following Running pods have containers that are not ready:"
+            echo "$NOT_READY"
+            kubectl get pods --no-headers | awk '$3 == "Running" { split($2, a, "/"); if (a[1] != a[2]) print $1 }' | while read -r pod; do
+              echo "=== kubectl describe pod $pod ==="
+              kubectl describe pod "$pod"
+            done
+            exit 1
+          fi
+
+          echo "All pods are healthy and all containers are ready."
+
+      - name: Setup Node.js for Playwright
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24.15.0
+
+      - name: Install Playwright
+        working-directory: e2e
+        run: npm install --no-optional && npx playwright install --with-deps chromium
+
+      - name: Add nextcloud.local to /etc/hosts
+        run: |
+          echo "127.0.0.1 nextcloud.local" | sudo tee -a /etc/hosts
+          echo "::1 nextcloud.local" | sudo tee -a /etc/hosts
+
+      - name: Install socat
+        run: sudo apt-get update && sudo apt-get install -y socat
+
+      - name: Run Playwright login tests
+        working-directory: e2e
+        env:
+          # Nextcloud runs with overwriteprotocol=https, so its session cookie is
+          # marked Secure. We must reach it over HTTPS or the browser drops the
+          # cookie and login bounces back to /login. The in-cluster nginx only
+          # serves plain HTTP, so we terminate TLS locally with socat (see below).
+          NEXTCLOUD_URL: https://nextcloud.local/
+        run: |
+          # Port-forward the cluster's HTTP nginx to a local port. Run it in this
+          # same step so it stays alive for the tests. Bind both IPv4 and IPv6
+          # since nextcloud.local may resolve to either.
+          kubectl port-forward --address 127.0.0.1,::1 svc/nextcloud-enterprise-nginx 8080:80 &
+          PORT_FORWARD_PID=$!
+
+          # Terminate TLS locally and forward to the plain-HTTP port-forward, so
+          # the browser sees HTTPS and Nextcloud's Secure session cookie sticks.
+          # A throwaway self-signed cert is fine — Playwright sets ignoreHTTPSErrors.
+          openssl req -x509 -newkey rsa:2048 -nodes \
+            -keyout /tmp/nc.key -out /tmp/nc.crt -days 1 \
+            -subj "/CN=nextcloud.local"
+          cat /tmp/nc.crt /tmp/nc.key > /tmp/nc.pem
+          # Listen on the standard HTTPS port (443) so the test can use a plain
+          # https://nextcloud.local/ URL with no port. 443 is privileged -> sudo.
+          sudo socat \
+            OPENSSL-LISTEN:443,reuseaddr,fork,cert=/tmp/nc.pem,verify=0 \
+            TCP:127.0.0.1:8080 &
+          SOCAT_PID=$!
+
+          trap 'sudo kill "$SOCAT_PID" 2>/dev/null || true; kill "$PORT_FORWARD_PID" 2>/dev/null || true' EXIT
+
+          for i in $(seq 1 30); do
+            if curl -skf -o /dev/null https://nextcloud.local/status.php; then
+              echo "HTTPS tunnel ready after ${i} attempt(s)"
+              break
+            fi
+            echo "Waiting for HTTPS tunnel... attempt $i/30"
+            sleep 2
+          done
+
+          export DEBUG=pw:api
+          npx playwright test
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7

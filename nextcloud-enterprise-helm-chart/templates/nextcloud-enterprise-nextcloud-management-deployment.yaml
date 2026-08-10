@@ -1,0 +1,505 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: nextcloud-enterprise-nextcloud-management
+  name: nextcloud-enterprise-nextcloud-management
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: nextcloud-enterprise-nextcloud-management
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        {{- if .Values.NEXTCLOUD_MANAGEMENT_ADDITIONAL_ANNOTATIONS_AND_LABELS }}
+        {{- if .Values.NEXTCLOUD_MANAGEMENT_ADDITIONAL_ANNOTATIONS_AND_LABELS.annotations }}
+        {{- toYaml .Values.NEXTCLOUD_MANAGEMENT_ADDITIONAL_ANNOTATIONS_AND_LABELS.annotations | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        com.nextcloud.enterprise-aio.version: "v{{ .Chart.Version }}"
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        {{- if .Values.NEXTCLOUD_MANAGEMENT_ADDITIONAL_ANNOTATIONS_AND_LABELS }}
+        {{- if .Values.NEXTCLOUD_MANAGEMENT_ADDITIONAL_ANNOTATIONS_AND_LABELS.labels }}
+        {{- toYaml .Values.NEXTCLOUD_MANAGEMENT_ADDITIONAL_ANNOTATIONS_AND_LABELS.labels | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        io.kompose.service: nextcloud-enterprise-nextcloud-management
+    spec:
+      {{- if .Values.SERVICE_ACCOUNT }}
+      serviceAccountName: "{{ .Values.SERVICE_ACCOUNT }}"
+      {{- end }}
+      {{- if .Values.IMAGE_PULL_SECRET }}
+      imagePullSecrets:
+        - name: {{ .Values.IMAGE_PULL_SECRET }}
+      {{- end }}
+      securityContext:
+        # The items below only work in pod context
+        fsGroup: {{ .Values.NEXTCLOUD_UGID | default 33 }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        # The items below work in both contexts
+        runAsUser: {{ .Values.NEXTCLOUD_UGID | default 33 }}
+        runAsGroup: {{ .Values.NEXTCLOUD_UGID | default 33 }}
+        runAsNonRoot: true
+        {{- if eq (.Values.RPSS_ENABLED | default "no") "yes" }}
+        seccompProfile:
+          type: RuntimeDefault
+          {{- end }}
+      containers:
+        - env:
+            - name: NC_EAIO_VERSION
+              value: "v{{ .Chart.Version }}"
+            - name: DATABASE_TYPE
+              value: "{{ .Values.DATABASE_TYPE }}"
+            - name: DISABLE_BRUTEFORCE_PROTECTION
+              value: "{{ .Values.DISABLE_BRUTEFORCE_PROTECTION }}"
+            - name: NEXTCLOUD_SKIP_DATABASE_OPTIMIZATION
+              value: "{{ .Values.NEXTCLOUD_SKIP_DATABASE_OPTIMIZATION }}"
+            - name: ENTERPRISE_ARCHIVE_URL
+              value: "{{ .Values.ENTERPRISE_ARCHIVE_URL }}"
+            - name: TALK_HOST
+              value: "{{ .Values.TALK_HOST }}"
+            - name: HPB_PATH
+              value: "{{ .Values.TALK_HPB_PATH }}"
+            - name: http_proxy
+              value: "{{ .Values.HTTP_PROXY }}"
+            - name: HTTP_PROXY
+              value: "{{ .Values.HTTP_PROXY }}"
+            - name: HTTPS_PROXY
+              value: "{{ .Values.HTTP_PROXY }}"
+            - name: NO_PROXY
+              value: "nextcloud-enterprise-apache,nextcloud-enterprise-clamav,nextcloud-enterprise-collabora,nextcloud-enterprise-database,nextcloud-enterprise-eurooffice,nextcloud-enterprise-fulltextsearch,nextcloud-enterprise-imaginary,nextcloud-enterprise-nextcloud,nextcloud-enterprise-nextcloud-management,nextcloud-enterprise-notify-push,nextcloud-enterprise-onlyoffice,nextcloud-enterprise-redis,nextcloud-enterprise-talk,nextcloud-enterprise-talk-recording,nextcloud-enterprise-whiteboard{{ if .Values.PROXY_EXCLUDE }},{{ .Values.PROXY_EXCLUDE }}{{ end }}"
+            - name: REDIS_MODE
+              value: "{{ .Values.REDIS_MODE | default "redis" }}"
+            - name: REDIS_HOST_PASSWORD
+              {{- if eq (.Values.USE_SECRETS | default "no") "yes" }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.REDIS_PASSWORD }} 
+                  key:  {{ .Values.REDIS_PASSWORD }} 
+              {{- else }}
+              value: {{ .Values.REDIS_PASSWORD | quote }}
+              {{- end }}
+            - name: REDIS_CONNECT_STRING
+              value: "{{- include "build_redis_connect_string" . | nospace }}"
+            - name: REDIS_DB_INDEX
+              value: "{{ .Values.REDIS_DB_INDEX }}"
+            - name: REDIS_PREFIX
+              value: "{{ .Values.REDIS_PREFIX }}"
+            {{- if .Values.REDIS_USER }}
+            - name: REDIS_USER_AUTH
+              value: "&auth[]={{ .Values.REDIS_USER }}"
+            {{- end }}
+            - name: REDIS_HOST_2
+              value: "{{ .Values.REDIS_HOST_2 }}"
+            - name: REDIS_PORT_2
+              value: "{{ .Values.REDIS_PORT_2 }}"
+            - name: REDIS_HOST_3
+              value: "{{ .Values.REDIS_HOST_3 }}"
+            - name: REDIS_PORT_3
+              value: "{{ .Values.REDIS_PORT_3 }}"
+            - name: REDIS_HOST_4
+              value: "{{ .Values.REDIS_HOST_4 }}"
+            - name: REDIS_PORT_4
+              value: "{{ .Values.REDIS_PORT_4 }}"
+            - name: REDIS_HOST_5
+              value: "{{ .Values.REDIS_HOST_5 }}"
+            - name: REDIS_PORT_5
+              value: "{{ .Values.REDIS_PORT_5 }}"
+            - name: REDIS_HOST_6
+              value: "{{ .Values.REDIS_HOST_6 }}"
+            - name: REDIS_PORT_6
+              value: "{{ .Values.REDIS_PORT_6 }}"
+            - name: REDIS_HOST_7
+              value: "{{ .Values.REDIS_HOST_7 }}"
+            - name: REDIS_PORT_7
+              value: "{{ .Values.REDIS_PORT_7 }}"
+            - name: REDIS_HOST_8
+              value: "{{ .Values.REDIS_HOST_8 }}"
+            - name: REDIS_PORT_8
+              value: "{{ .Values.REDIS_PORT_8 }}"
+            - name: REDIS_HOST_9
+              value: "{{ .Values.REDIS_HOST_9 }}"
+            - name: REDIS_PORT_9
+              value: "{{ .Values.REDIS_PORT_9 }}"
+            - name: TURN_DOMAIN
+              value: "{{ .Values.TURN_DOMAIN }}"
+            - name: CLAMAV_BLOCKLISTED_DIRECTORIES
+              value: "{{ .Values.CLAMAV_BLOCKLISTED_DIRECTORIES }}"
+            - name: NEXTCLOUD_LOG_TYPE
+              value: "{{ .Values.NEXTCLOUD_LOG_TYPE }}"
+            - name: OBJECTSTORE_S3_BUCKET
+              value: "{{ .Values.OBJECTSTORE_S3_BUCKET }}"
+            - name: OBJECTSTORE_S3_NUM_BUCKETS
+              value: "{{ .Values.OBJECTSTORE_S3_NUM_BUCKETS }}"
+            - name: OBJECTSTORE_S3_REQUEST_CHECKSUM_VALIDATION
+              value: "{{ .Values.OBJECTSTORE_S3_REQUEST_CHECKSUM_VALIDATION }}"
+            - name: OBJECTSTORE_S3_RESPONSE_CHECKSUM_VALIDATION
+              value: "{{ .Values.OBJECTSTORE_S3_RESPONSE_CHECKSUM_VALIDATION }}"
+            - name: OBJECTSTORE_S3_REGION
+              value: "{{ .Values.OBJECTSTORE_S3_REGION }}"
+            - name: OBJECTSTORE_S3_HOST
+              value: "{{ .Values.OBJECTSTORE_S3_HOST }}"
+            - name: OBJECTSTORE_S3_PORT
+              value: "{{ .Values.OBJECTSTORE_S3_PORT }}"
+            - name: OBJECTSTORE_S3_KEY
+              {{- if and (eq (.Values.USE_SECRETS | default "no") "yes") (.Values.OBJECTSTORE_S3_KEY) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.OBJECTSTORE_S3_KEY }} 
+                  key:  {{ .Values.OBJECTSTORE_S3_KEY }} 
+              {{- else }}
+              value: "{{ .Values.OBJECTSTORE_S3_KEY }}"
+              {{- end }}
+            - name: OBJECTSTORE_S3_SECRET
+              {{- if and (eq (.Values.USE_SECRETS | default "no") "yes") (.Values.OBJECTSTORE_S3_SECRET) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.OBJECTSTORE_S3_SECRET }} 
+                  key:  {{ .Values.OBJECTSTORE_S3_SECRET }} 
+              {{- else }}
+              value: "{{ .Values.OBJECTSTORE_S3_SECRET }}"
+              {{- end }}
+            - name: OBJECTSTORE_S3_STORAGE_CLASS
+              value: "{{ .Values.OBJECTSTORE_S3_STORAGE_CLASS }}"
+            - name: OBJECTSTORE_S3_SSL
+              value: "{{ .Values.OBJECTSTORE_S3_SSL }}"
+            - name: OBJECTSTORE_S3_USEPATH_STYLE
+              value: "{{ .Values.OBJECTSTORE_S3_USEPATH_STYLE }}"
+            - name: OBJECTSTORE_S3_LEGACYAUTH
+              value: "{{ .Values.OBJECTSTORE_S3_LEGACYAUTH }}"
+            - name: OBJECTSTORE_S3_OBJECT_PREFIX
+              value: "{{ .Values.OBJECTSTORE_S3_OBJECT_PREFIX }}"
+            - name: OBJECTSTORE_S3_MULTIBUCKET
+              value: "{{ .Values.OBJECTSTORE_S3_MULTIBUCKET }}"
+            - name: OBJECTSTORE_S3_AUTOCREATE
+              value: "{{ .Values.OBJECTSTORE_S3_AUTOCREATE }}"
+            - name: OBJECTSTORE_S3_SSE_C_KEY
+              {{- if and (eq (.Values.USE_SECRETS | default "no") "yes") (.Values.OBJECTSTORE_S3_SSE_C_KEY) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.OBJECTSTORE_S3_SSE_C_KEY }} 
+                  key:  {{ .Values.OBJECTSTORE_S3_SSE_C_KEY }} 
+              {{- else }}
+              value: "{{ .Values.OBJECTSTORE_S3_SSE_C_KEY }}"
+              {{- end }}
+            - name: SMTP_PASSWORD
+              {{- if and (eq (.Values.USE_SECRETS | default "no") "yes") (.Values.SMTP_PASSWORD) }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.SMTP_PASSWORD }} 
+                  key:  {{ .Values.SMTP_PASSWORD }} 
+              {{- else }}
+              value: "{{ .Values.SMTP_PASSWORD }}"
+              {{- end }}
+            - name: AIRGAPPED
+              value: "{{ .Values.AIRGAPPED }}"
+            - name: NEXTCLOUD_APP_STORE_URL
+              value: "{{ .Values.NEXTCLOUD_APP_STORE_URL }}"
+            {{- if .Values.NEXTCLOUD_TRUSTED_CERTIFICATES }}
+            {{- range $name, $value := .Values.NEXTCLOUD_TRUSTED_CERTIFICATES }}
+            - name: "NEXTCLOUD_TRUSTED_CERTIFICATES_{{ $name }}"
+              value: | {{ $value | nindent 16 }}
+            {{- end }}
+            {{- if kindIs "map" .Values.NEXTCLOUD_TRUSTED_CERTIFICATES }}
+            - name: "LDAPTLS_CACERT"
+              value: /var/www/html/data/certificates/ca-bundle.crt
+            {{- end }}
+            {{- end }}
+            - name: NEXTCLOUD_PERSIST_DATABASE_CONNECTIONS
+              value: "{{ .Values.NEXTCLOUD_PERSIST_DATABASE_CONNECTIONS }}"
+            - name: SMTP_HOST
+              value: "{{ .Values.SMTP_HOST }}"
+            - name: SMTP_SECURE
+              value: "{{ .Values.SMTP_SECURE }}"
+            - name: SMTP_PORT
+              value: "{{ .Values.SMTP_PORT }}"
+            - name: SMTP_AUTHTYPE
+              value: "{{ .Values.SMTP_AUTHTYPE }}"
+            - name: SMTP_NAME
+              value: "{{ .Values.SMTP_NAME }}"
+            - name: MAIL_FROM_ADDRESS
+              value: "{{ .Values.MAIL_FROM_ADDRESS }}"
+            - name: MAIL_DOMAIN
+              value: "{{ .Values.MAIL_DOMAIN }}"
+            - name: SUBSCRIPTION_KEY
+              value: "{{ .Values.SUBSCRIPTION_KEY }}"
+            - name: APPS_ALLOWLIST
+              value: "{{ .Values.APPS_ALLOWLIST }}"
+            - name: ADDITIONAL_TRUSTED_PROXY
+              value: "{{ .Values.ADDITIONAL_TRUSTED_PROXY }}"
+            - name: ADDITIONAL_TRUSTED_DOMAIN
+              value: "{{ .Values.ADDITIONAL_TRUSTED_DOMAIN }}"
+            - name: SERVERINFO_TOKEN
+              value: "{{ .Values.SERVERINFO_TOKEN }}"
+            - name: NEXTCLOUD_DEFAULT_QUOTA
+              value: "{{ .Values.NEXTCLOUD_DEFAULT_QUOTA }}"
+            - name: NEXTCLOUD_SKELETON_DIRECTORY
+              value: "{{ .Values.NEXTCLOUD_SKELETON_DIRECTORY }}"
+            - name: NEXTCLOUD_MAINTENANCE_WINDOW
+              value: "{{ .Values.NEXTCLOUD_MAINTENANCE_WINDOW }}"
+            - name: ADMIN_PASSWORD
+              {{- if eq (.Values.USE_SECRETS | default "no") "yes" }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.NEXTCLOUD_PASSWORD }} 
+                  key:  {{ .Values.NEXTCLOUD_PASSWORD }} 
+              {{- else }}
+              value: {{ .Values.NEXTCLOUD_PASSWORD | quote }}
+              {{- end }}
+            - name: ADMIN_USER
+              value: admin
+            - name: AIO_LOG_LEVEL
+              value: "{{ .Values.AIO_LOG_LEVEL }}"
+            - name: APACHE_HOST
+              value: "{{ .Values.APACHE_HOST }}"
+            - name: APACHE_PORT
+              value: "{{ .Values.APACHE_PORT }}"
+            - name: CLAMAV_ENABLED
+              value: "{{ .Values.CLAMAV_ENABLED }}"
+            - name: CLAMAV_HOST
+              value: nextcloud-enterprise-clamav
+            - name: COLLABORA_ENABLED
+              value: "{{ .Values.COLLABORA_ENABLED }}"
+            - name: COLLABORA_HOST
+              value: "{{ .Values.COLLABORA_HOST }}"
+            - name: EUROOFFICE_ENABLED
+              value: "{{ .Values.EUROOFFICE_ENABLED }}"
+            - name: EUROOFFICE_HOST
+              value: nextcloud-enterprise-eurooffice
+            - name: EUROOFFICE_SECRET
+              {{- if eq (.Values.USE_SECRETS | default "no") "yes" }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.EUROOFFICE_SECRET }} 
+                  key:  {{ .Values.EUROOFFICE_SECRET }} 
+              {{- else }}
+              value: {{ .Values.EUROOFFICE_SECRET | quote }}
+              {{- end }}
+            - name: FULLTEXTSEARCH_ENABLED
+              value: "{{ .Values.FULLTEXTSEARCH_ENABLED }}"
+            - name: FULLTEXTSEARCH_HOST
+              value: "{{ .Values.FULLTEXTSEARCH_HOST | default "nextcloud-enterprise-fulltextsearch" }}"
+            - name: FULLTEXTSEARCH_INDEX
+              value: "{{ .Values.FULLTEXTSEARCH_INDEX | default "nextcloud-aio" }}"
+            - name: FULLTEXTSEARCH_PASSWORD
+              {{- if eq (.Values.USE_SECRETS | default "no") "yes" }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.FULLTEXTSEARCH_PASSWORD }} 
+                  key:  {{ .Values.FULLTEXTSEARCH_PASSWORD }} 
+              {{- else }}
+              value: {{ .Values.FULLTEXTSEARCH_PASSWORD | quote }}
+              {{- end }}
+            - name: FULLTEXTSEARCH_PORT
+              value: "{{ .Values.FULLTEXTSEARCH_PORT | default "9200" }}"
+            - name: FULLTEXTSEARCH_PROTOCOL
+              value: "{{ .Values.FULLTEXTSEARCH_PROTOCOL | default "http" }}"
+            - name: FULLTEXTSEARCH_USER
+              value: "{{ .Values.FULLTEXTSEARCH_USER | default "elastic" }}"
+            - name: IMAGINARY_ENABLED
+              value: "{{ .Values.IMAGINARY_ENABLED }}"
+            - name: IMAGINARY_HOST
+              value: nextcloud-enterprise-imaginary
+            - name: IMAGINARY_SECRET
+              {{- if eq (.Values.USE_SECRETS | default "no") "yes" }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.IMAGINARY_SECRET }} 
+                  key:  {{ .Values.IMAGINARY_SECRET }} 
+              {{- else }}
+              value: {{ .Values.IMAGINARY_SECRET | quote }}
+              {{- end }}
+            - name: INSTALL_LATEST_MAJOR
+              value: "{{ .Values.INSTALL_LATEST_MAJOR }}"
+            - name: NC_DOMAIN
+              value: "{{ .Values.NC_DOMAIN }}"
+            - name: NEXTCLOUD_DATA_DIR
+              value: /mnt/ncdata
+            - name: NEXTCLOUD_HOST
+              value: nextcloud-enterprise-nextcloud
+            - name: ONLYOFFICE_ENABLED
+              value: "{{ .Values.ONLYOFFICE_ENABLED }}"
+            - name: ONLYOFFICE_HOST
+              value: "{{ .Values.ONLYOFFICE_HOST | default "nextcloud-enterprise-onlyoffice" }}"
+            - name: ONLYOFFICE_SECRET
+              {{- if eq (.Values.USE_SECRETS | default "no") "yes" }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.ONLYOFFICE_SECRET }} 
+                  key:  {{ .Values.ONLYOFFICE_SECRET }} 
+              {{- else }}
+              value: {{ .Values.ONLYOFFICE_SECRET | quote }}
+              {{- end }}
+            - name: OVERWRITEPROTOCOL
+              value: https
+            - name: PHP_MAX_TIME
+              value: "{{ .Values.NEXTCLOUD_MAX_TIME }}"
+            - name: PHP_MEMORY_LIMIT
+              value: "{{ .Values.NEXTCLOUD_MEMORY_LIMIT }}"
+            - name: PHP_UPLOAD_LIMIT
+              value: "{{ .Values.NEXTCLOUD_UPLOAD_LIMIT }}"
+            - name: POSTGRES_DB
+              value: "{{ .Values.POSTGRES_DB }}"
+            - name: POSTGRES_HOST
+              value: "{{ .Values.POSTGRES_HOST }}"
+            - name: POSTGRES_PASSWORD
+              {{- if eq (.Values.USE_SECRETS | default "no") "yes" }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.DATABASE_PASSWORD }} 
+                  key:  {{ .Values.DATABASE_PASSWORD }} 
+              {{- else }}
+              value: {{ .Values.DATABASE_PASSWORD | quote }}
+              {{- end }}
+            - name: POSTGRES_PORT
+              value: "{{ .Values.POSTGRES_PORT }}"
+            - name: POSTGRES_USER
+              value: "{{ .Values.POSTGRES_USER }}"
+            - name: RECORDING_SECRET
+              {{- if eq (.Values.USE_SECRETS | default "no") "yes" }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.RECORDING_SECRET }} 
+                  key:  {{ .Values.RECORDING_SECRET }} 
+              {{- else }}
+              value: {{ .Values.RECORDING_SECRET | quote }}
+              {{- end }}
+            - name: REDIS_HOST
+              value: "{{ .Values.REDIS_HOST }}"
+            - name: REDIS_PORT
+              value: "{{ .Values.REDIS_PORT | default "6379" }}"
+            - name: REMOVE_DISABLED_APPS
+              value: "{{ .Values.REMOVE_DISABLED_APPS }}"
+            - name: SIGNALING_SECRET
+              {{- if eq (.Values.USE_SECRETS | default "no") "yes" }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.SIGNALING_SECRET }} 
+                  key:  {{ .Values.SIGNALING_SECRET }} 
+              {{- else }}
+              value: {{ .Values.SIGNALING_SECRET | quote }}
+              {{- end }}
+            - name: STARTUP_APPS
+              value: "{{ .Values.NEXTCLOUD_STARTUP_APPS }}"
+            - name: TALK_ENABLED
+              value: "{{ .Values.TALK_ENABLED }}"
+            - name: TALK_PORT
+              value: "{{ .Values.TALK_PORT }}"
+            - name: TALK_RECORDING_ENABLED
+              value: "{{ .Values.TALK_RECORDING_ENABLED }}"
+            - name: TALK_RECORDING_HOST
+              value: nextcloud-enterprise-talk-recording
+            - name: TURN_SECRET
+              {{- if eq (.Values.USE_SECRETS | default "no") "yes" }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.TURN_SECRET }} 
+                  key:  {{ .Values.TURN_SECRET }} 
+              {{- else }}
+              value: {{ .Values.TURN_SECRET | quote }}
+              {{- end }}
+            - name: TZ
+              value: "{{ .Values.TIMEZONE }}"
+            - name: UPDATE_NEXTCLOUD_APPS
+              value: "{{ .Values.UPDATE_NEXTCLOUD_APPS }}"
+            - name: WHITEBOARD_ENABLED
+              value: "{{ .Values.WHITEBOARD_ENABLED }}"
+            - name: WHITEBOARD_SECRET
+              {{- if eq (.Values.USE_SECRETS | default "no") "yes" }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.WHITEBOARD_SECRET }} 
+                  key:  {{ .Values.WHITEBOARD_SECRET }} 
+              {{- else }}
+              value: {{ .Values.WHITEBOARD_SECRET | quote }}
+              {{- end }}
+          image: "{{ .Values.IMAGE_MIRROR_PREFIX }}{{ .Values.NEXTCLOUD_IMAGE_ORG }}/nce-php-fpm-mgmt:20260623_125920"
+          {{- if .Values.NEXTCLOUD_MANAGEMENT_RESOURCES }}
+          resources:
+            {{- toYaml .Values.NEXTCLOUD_MANAGEMENT_RESOURCES | nindent 12 }}
+          {{- end }}
+          securityContext:
+            # The items below only work in container context
+            allowPrivilegeEscalation: false
+            capabilities:
+              {{- if eq (.Values.RPSS_ENABLED | default "no") "yes" }}
+              drop: ["ALL"]
+              {{- else }}
+              drop: ["NET_RAW"]
+              {{- end }}
+          readinessProbe:
+            exec:
+              command:
+                - /healthcheck.sh
+            failureThreshold: 3
+            periodSeconds: 30
+            timeoutSeconds: 30
+          livenessProbe:
+            exec:
+              command:
+                - /healthcheck.sh
+            failureThreshold: 3
+            periodSeconds: 30
+            timeoutSeconds: 30
+          name: nextcloud-enterprise-nextcloud-management
+          ports:
+            - containerPort: 9001
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: nextcloud-enterprise-nextcloud
+            - mountPath: /mnt/ncdata
+              name: nextcloud-enterprise-nextcloud-data
+            {{- if .Values.ARCHIVES_PVC_NAME }}
+            - mountPath: /mnt/archive
+              name: nextcloud-enterprise-nextcloud-archive
+            {{- end }}
+      terminationGracePeriodSeconds: 600
+      volumes:
+        - name: nextcloud-enterprise-nextcloud
+          {{- if (and .Values.NFS_SERVER (not (eq (.Values.USE_PVS | default "no") "yes"))) }}
+          nfs:
+            server: {{ .Values.NFS_SERVER }}
+            path: "{{ .Values.NFS_PREFIX }}/nextcloud-enterprise-nextcloud"
+          {{- else if .Values.HOST_PATH }}
+          hostPath:
+            path: {{ .Values.HOST_PATH }}/nextcloud-enterprise-nextcloud
+            type: Directory
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: nextcloud-enterprise-nextcloud
+          {{- end }}
+        - name: nextcloud-enterprise-nextcloud-data
+          {{- if (and .Values.NFS_SERVER (not (eq (.Values.USE_PVS | default "no") "yes"))) }}
+          nfs:
+            server: {{ .Values.NFS_SERVER }}
+            path: "{{ .Values.NFS_PREFIX }}/nextcloud-enterprise-nextcloud-data"
+          {{- else if .Values.HOST_PATH }}
+          hostPath:
+            path: {{ .Values.HOST_PATH }}/nextcloud-enterprise-nextcloud-data
+            type: Directory
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: nextcloud-enterprise-nextcloud-data
+          {{- end }}
+        {{- if .Values.ARCHIVES_PVC_NAME }}
+        - name: nextcloud-enterprise-nextcloud-archive
+          {{- if (and .Values.NFS_SERVER (not (eq (.Values.USE_PVS | default "no") "yes"))) }}
+          nfs:
+            server: {{ .Values.NFS_SERVER }}
+            path: "{{ .Values.NFS_PREFIX }}/{{ .Values.ARCHIVES_PVC_NAME }}"
+          {{- else if .Values.HOST_PATH }}
+          hostPath:
+            path: {{ .Values.HOST_PATH }}/{{ .Values.ARCHIVES_PVC_NAME }}
+            type: Directory
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.ARCHIVES_PVC_NAME }}
+          {{- end }}
+        {{- end }}

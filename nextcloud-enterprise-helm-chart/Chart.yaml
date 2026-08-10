@@ -1,0 +1,19 @@
+name: nextcloud-enterprise-helm-chart
+description: A Nextcloud enterprise Helm chart
+version: 7.3.1
+apiVersion: v2
+keywords:
+  - latest
+  - nextcloud
+  - helm-chart
+  - open-source
+  - cloud
+  - enterprise
+sources:
+  - https://github.com/nextcloud-gmbh/enterprise-aio/tree/main/nextcloud-enterprise-helm-chart
+dependencies:
+  - name: nginx
+    version: 21.1.23
+    repository: oci://registry-1.docker.io/bitnamicharts
+    condition: nginx.enabled
+home: https://github.com/nextcloud-gmbh/enterprise-aio/tree/main/nextcloud-enterprise-helm-chart

@@ -1,0 +1,308 @@
+{
+  "title": "Nextcloud Enterprise-AIO values schema",
+  "description": "JSON Schema for validating values.yaml of the nextcloud-enterprise-helm-chart (covers main keys and the nginx subchart). Enforces stricter formats for size strings, ports and some prefixes.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "USE_SECRETS": {"oneOf": [{"type": "string", "enum": ["yes","no"]}]},
+    "DATABASE_PASSWORD": {"type":["string"]},
+    "EUROOFFICE_SECRET": {"type":["string"]},
+    "FULLTEXTSEARCH_PASSWORD": {"type":["string"]},
+    "IMAGINARY_SECRET": {"type":["string"]},
+    "NC_DOMAIN": {"type": "string", "pattern": "^([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"},
+    "NEXTCLOUD_PASSWORD": {"type":["string"]},
+    "ONLYOFFICE_SECRET": {"type":["string"]},
+    "RECORDING_SECRET": {"type":["string"]},
+    "REDIS_PASSWORD": {"type":["string"]},
+    "SIGNALING_SECRET": {"type":["string"]},
+    "TALK_INTERNAL_SECRET": {"type":["string"]},
+    "TIMEZONE": {"type": "string"},
+    "TURN_SECRET": {"type":["string"]},
+    "WHITEBOARD_SECRET": {"type":["string"]},
+
+    "CLAMAV_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "COLLABORA_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "EUROOFFICE_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "FULLTEXTSEARCH_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "IMAGINARY_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "ONLYOFFICE_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "TALK_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "TALK_RECORDING_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "WHITEBOARD_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+
+    "AIO_LOG_LEVEL": {"oneOf":[{"type":"string","enum":["warn","debug","error","info"]}]},
+    "APACHE_MAX_SIZE": {"type": ["string"]},
+    "APACHE_PORT": {"type": "integer", "minimum": 1, "maximum": 65535},
+    "ADDITIONAL_COLLABORA_OPTIONS": {"oneOf":[{"type":"array","items":{"type":"string"}},{"type":"string"}]},
+    "COLLABORA_DICTIONARIES": {"oneOf":[{"type":"array","items":{"type":"string"}},{"type":"string"}]},
+    "FULLTEXTSEARCH_JAVA_OPTIONS": {"oneOf":[{"type":"string"},{"type":"array","items":{"type":"string"}}]},
+    "INSTALL_LATEST_MAJOR": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "NEXTCLOUD_MAX_TIME": {"type": "integer", "minimum": 0},
+    "NEXTCLOUD_MEMORY_LIMIT": {"type": ["string"], "pattern": "^\\d+(M|G)(i)?$"},
+    "NEXTCLOUD_STARTUP_APPS": {"oneOf":[{"type":"string"},{"type":"array","items":{"type":"string"}}]},
+    "NEXTCLOUD_UPLOAD_LIMIT": {"type": ["string"], "pattern": "^\\d+(G)$"},
+    "REMOVE_DISABLED_APPS": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "TALK_PORT": {"type":"integer","minimum":1025,"maximum":65535},
+    "UPDATE_NEXTCLOUD_APPS": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+
+    "STORAGE_CLASS": {"type": ["string","null"]},
+    "STORAGE_CLASS_DATA": {"type": ["string","null"]},
+    "PVC_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "PVC_LABELS_DATA": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "APACHE_STORAGE_SIZE": {"type": ["string"], "pattern": "^\\d+(Gi|Mi|Ti)$"},
+    "CLAMAV_STORAGE_SIZE": {"type":["string"], "pattern": "^\\d+(Gi|Mi|Ti)$"},
+    "DATABASE_STORAGE_SIZE": {"type":["string"], "pattern": "^\\d+(Gi|Mi|Ti)$"},
+    "DATABASE_DUMP_STORAGE_SIZE": {"type":["string"], "pattern": "^\\d+(Gi|Mi|Ti)$"},
+    "EUROOFFICE_STORAGE_SIZE": {"type":["string"], "pattern": "^\\d+(Gi|Mi|Ti)$"},
+    "ELASTICSEARCH_STORAGE_SIZE": {"type":["string"], "pattern": "^\\d+(Gi|Mi|Ti)$"},
+    "NEXTCLOUD_STORAGE_SIZE": {"type":["string"], "pattern": "^\\d+(Gi|Mi|Ti)$"},
+    "NEXTCLOUD_DATA_STORAGE_SIZE": {"type":["string"], "pattern": "^\\d+(Gi|Mi|Ti)$"},
+    "ONLYOFFICE_STORAGE_SIZE": {"type":["string"], "pattern": "^\\d+(Gi|Mi|Ti)$"},
+    "REDIS_STORAGE_SIZE": {"type":["string"], "pattern": "^\\d+(Gi|Mi|Ti)$"},
+    "TALK_RECORDING_STORAGE_SIZE": {"type":["string"], "pattern": "^\\d+(Gi|Mi|Ti)$"},
+
+    "NAMESPACE": {"type": "string", "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"},
+    "NAMESPACE_DISABLED": {"oneOf": [{"type":"string","enum":["yes","no"]}]},
+    "NETWORK_POLICY_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "SUBSCRIPTION_KEY": {"type": ["string","null"]},
+    "SERVERINFO_TOKEN": {"type":["string","null"]},
+    "APPS_ALLOWLIST": {"type": ["string","null"]},
+    "ADDITIONAL_TRUSTED_PROXY": {"type": ["string","null"]},
+    "ADDITIONAL_TRUSTED_DOMAIN": {"type": ["string","null"]},
+    "NEXTCLOUD_DEFAULT_QUOTA": {"type":"string"},
+    "NEXTCLOUD_SKELETON_DIRECTORY": {"type": ["string","null"]},
+    "NEXTCLOUD_MAINTENANCE_WINDOW": {"type": ["string","null"]},
+    "SMTP_HOST": {"type":["string","null"]},
+    "SMTP_SECURE": {"type":["string","null"]},
+    "SMTP_PORT": {"type":["string","integer","null"]},
+    "SMTP_AUTHTYPE": {"type":["string","null"]},
+    "SMTP_NAME": {"type":["string","null"]},
+    "SMTP_PASSWORD": {"type":["string","null"]},
+    "MAIL_FROM_ADDRESS": {"type":["string","null"]},
+    "MAIL_DOMAIN": {"type":["string","null"]},
+    "TALK_MAX_STREAM_BITRATE": {"type":["string","integer","null"], "pattern": "^\\d+$"},
+    "TALK_MAX_SCREEN_BITRATE": {"type":["string","integer","null"], "pattern": "^\\d+$"},
+
+    "IMAGE_MIRROR_PREFIX": {"type":"string", "pattern": ".*/$"},
+    "NEXTCLOUD_IMAGE_ORG": {"type":"string"},
+    "ENTERPRISE_ARCHIVE_URL": {"type":"string","format":"uri"},
+    "USE_PVS": {"oneOf": [{"type":"string","enum":["yes","no"]}]},
+    "NFS_SERVER": {"type":["string","null"]},
+    "NFS_PREFIX": {"type":["string","null"], "pattern": "^/[^\\s].*[^/]$"},
+    "HOST_PATH": {"type":["string","null"]},
+    "OBJECTSTORE_S3_BUCKET": {"type":["string","null"]},
+    "OBJECTSTORE_S3_REGION": {"type":["string","null"]},
+    "OBJECTSTORE_S3_HOST": {"type":["string","null"]},
+    "OBJECTSTORE_S3_PORT": {"type":["integer","null"]},
+    "OBJECTSTORE_S3_KEY": {"type":["string","null"]},
+    "OBJECTSTORE_S3_SECRET": {"type":["string","null"]},
+    "OBJECTSTORE_S3_STORAGE_CLASS": {"type":["string","null"]},
+    "OBJECTSTORE_S3_SSL": {"oneOf":[{"type":"string","enum":["true","false"]},{"type":"null"}]},
+    "OBJECTSTORE_S3_USEPATH_STYLE": {"oneOf":[{"type":"string","enum":["true","false"]},{"type":"null"}]},
+    "OBJECTSTORE_S3_LEGACYAUTH": {"oneOf":[{"type":"string","enum":["true","false"]},{"type":"null"}]},
+    "OBJECTSTORE_S3_OBJECT_PREFIX": {"type":["string","null"]},
+    "OBJECTSTORE_S3_MULTIBUCKET": {"oneOf":[{"type":"string","enum":["true","false"]},{"type":"null"}]},
+    "OBJECTSTORE_S3_NUM_BUCKETS": {"type":["integer","null"]},
+    "OBJECTSTORE_S3_REQUEST_CHECKSUM_VALIDATION": {"oneOf":[{"type":"string","enum":["when_required","when_reported"]},{"type":"null"}]},
+    "OBJECTSTORE_S3_RESPONSE_CHECKSUM_VALIDATION": {"oneOf":[{"type":"string","enum":["when_required","when_reported"]},{"type":"null"}]},
+    "OBJECTSTORE_S3_AUTOCREATE": {"oneOf":[{"type":"string","enum":["true","false"]},{"type":"null"}]},
+    "OBJECTSTORE_S3_SSE_C_KEY": {"type":["string","null"]},
+
+    "NGINX_ENABLE_HSTS": {"oneOf": [{"type":"string","enum":["yes","no"]}]},
+    "INGRESS_ENABLED": {"oneOf": [{"type":"string","enum":["yes","no"]}]},
+    "INGRESS_CLUSTER_ISSUER": {"type":"string"},
+    "INGRESS_CLASS_NAME": {"type":"string"},
+    "OPENSHIFT_ROUTE_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]},{"type":"null"}]},
+
+    "APACHE_HOST": {"type":"string"},
+    "POSTGRES_HOST": {"type":"string"},
+    "POSTGRES_PORT": {"type":"integer","minimum":1,"maximum":65535},
+    "DATABASE_TYPE": {"type":"string","enum":["postgres","mysql"]},
+    "POSTGRES_DB": {"type":"string"},
+    "POSTGRES_USER": {"type":"string"},
+    "REDIS_HOST": {"type":"string"},
+    "REDIS_MODE": {"type":"string","enum":["redis","rediscluster"]},
+    "REDIS_DB_INDEX": {"type":["string","integer"]},
+    "REDIS_PREFIX": {"type":["string","null"]},
+    "REDIS_USER": {"type":["string","null"]},
+    "REDIS_PORT": {"type":"integer","minimum":1,"maximum":65535},
+    "REDIS_HOST_2": {"type":["string","null"]},
+    "REDIS_PORT_2": {"type":"integer"},
+    "REDIS_HOST_3": {"type":["string","null"]},
+    "REDIS_PORT_3": {"type":"integer"},
+    "REDIS_HOST_4": {"type":["string","null"]},
+    "REDIS_PORT_4": {"type":"integer"},
+    "REDIS_HOST_5": {"type":["string","null"]},
+    "REDIS_PORT_5": {"type":"integer"},
+    "REDIS_HOST_6": {"type":["string","null"]},
+    "REDIS_PORT_6": {"type":"integer"},
+    "REDIS_HOST_7": {"type":["string","null"]},
+    "REDIS_PORT_7": {"type":"integer"},
+    "REDIS_HOST_8": {"type":["string","null"]},
+    "REDIS_PORT_8": {"type":"integer"},
+    "REDIS_HOST_9": {"type":["string","null"]},
+    "REDIS_PORT_9": {"type":"integer"},
+
+    "NEXTCLOUD_LOG_TYPE": {"type":["string","null"]},
+    "NEXTCLOUD_SKIP_DATABASE_OPTIMIZATION": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "NEXTCLOUD_APP_STORE_URL": {"type":["string","null"]},
+    "NEXTCLOUD_PERSIST_DATABASE_CONNECTIONS": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "COLLABORA_HOST": {"type":"string"},
+    "CLAMAV_BLOCKLISTED_DIRECTORIES": {"type":["string","null"]},
+    "TALK_HOST": {"type":"string"},
+    "TALK_HPB_PATH": {"type":"string"},
+    "TURN_DOMAIN": {"type":["string","null"]},
+    "FULLTEXTSEARCH_HOST": {"type":"string"},
+    "FULLTEXTSEARCH_PROTOCOL": {"type":"string"},
+    "FULLTEXTSEARCH_PORT": {"type":"integer"},
+    "FULLTEXTSEARCH_USER": {"type":"string"},
+    "FULLTEXTSEARCH_INDEX": {"type":"string"},
+    "ONLYOFFICE_HOST": {"type":"string"},
+
+    "VPA_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]}]},
+    "MAX_REPLICAS": {"type":"integer"},
+    "RPSS_ENABLED": {"oneOf":[{"type":"string","enum":["yes","no"]},{"type":"null"}]},
+    "IMAGE_PULL_SECRET": {"type":["string","null"]},
+    "HTTP_PROXY": {"type":["string","null"]},
+    "PROXY_EXCLUDE": {"type":["string","null"]},
+    "ARCHIVES_PVC_NAME": {"type":["string","null"]},
+    "AIRGAPPED": {"oneOf":[{"type":"string","enum":["yes","no"]},{"type":"null"}]},
+    "DISABLE_BRUTEFORCE_PROTECTION": {"oneOf":[{"type":"string","enum":["yes","no"]},{"type":"null"}]},
+
+    "SERVICE_ACCOUNT": {"type":"string"},
+    "NEXTCLOUD_UGID": {"type":"integer"},
+    "REDIS_UGID": {"type":"integer"},
+    "POSTGRES_UGID": {"type":"integer"},
+    "TALK_RECORDING_UGID": {"type":"integer"},
+    "IMAGINARY_UGID": {"type":"integer"},
+    "CLAMAV_UGID": {"type":"integer"},
+    "TALK_UGID": {"type":"integer"},
+    "WHITEBOARD_UGID": {"type":"integer"},
+
+    "NEXTCLOUD_TRUSTED_CERTIFICATES": {"type":["object","null"],"additionalProperties": true},
+
+    "APACHE_RESOURCES": {"type":["object","array","null"]},
+    "CLAMAV_RESOURCES": {"type":["object","array","null"]},
+    "COLLABORA_RESOURCES": {"type":["object","array","null"]},
+    "DATABASE_RESOURCES": {"type":["object","array","null"]},
+    "EUROOFFICE_RESOURCES": {"type":["object","array","null"]},
+    "FULLTEXTSEARCH_RESOURCES": {"type":["object","array","null"]},
+    "IMAGINARY_RESOURCES": {"type":["object","array","null"]},
+    "NEXTCLOUD_RESOURCES": {"type":["object","array","null"]},
+    "NEXTCLOUD_MANAGEMENT_RESOURCES": {"type":["object","array","null"]},
+    "NOTIFY_PUSH_RESOURCES": {"type":["object","array","null"]},
+    "ONLYOFFICE_RESOURCES": {"type":["object","array","null"]},
+    "REDIS_RESOURCES": {"type":["object","array","null"]},
+    "TALK_RESOURCES": {"type":["object","array","null"]},
+    "TALK_RECORDING_RESOURCES": {"type":["object","array","null"]},
+    "WHITEBOARD_RESOURCES": {"type":["object","array","null"]},
+
+    "APACHE_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "CLAMAV_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "COLLABORA_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "DATABASE_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "EUROOFFICE_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "FULLTEXTSEARCH_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "IMAGINARY_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "NEXTCLOUD_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "NEXTCLOUD_MANAGEMENT_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "NOTIFY_PUSH_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "ONLYOFFICE_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "REDIS_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "TALK_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "TALK_RECORDING_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+    "WHITEBOARD_ADDITIONAL_ANNOTATIONS_AND_LABELS": {"type":["object","null"],"additionalProperties":{"type":"string"}},
+
+    "nginx": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {"type": "string"},
+            "digest": {"type": "string"},
+            "registry": {"type": ["string","null"]}
+          }
+        },
+        "global": {
+          "type": "object",
+          "properties": {
+            "security": {
+              "type": "object",
+              "properties": {
+                "allowInsecureImages": {"type":"boolean"}
+              }
+            }
+          }
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {"type": "string"}
+          }
+        },
+        "extraVolumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {"type":"string"},
+              "persistentVolumeClaim": {
+                "type": "object",
+                "properties": {"claimName": {"type":"string"}},
+                "required": ["claimName"]
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        "resourcesPreset": {"type":"string"},
+        "podLabels": {"type":"object","additionalProperties": {"type":"string"}},
+        "fullnameOverride": {"type":"string"},
+        "namespaceOverride": {"type":"string"},
+        "autoscaling": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type":"boolean"},
+            "minReplicas": {"type":"integer","minimum":0},
+            "maxReplicas": {"type":"integer","minimum":1},
+            "targetCPU": {"type":"integer","minimum":0},
+            "targetMemory": {"type":"integer","minimum":0}
+          }
+        },
+        "containerSecurityContext": {
+          "type": "object",
+          "properties": {
+            "runAsUser": {"type":"integer"},
+            "runAsGroup": {"type":"integer"}
+          }
+        },
+        "serviceAccount": {"type":"object","properties":{"create":{"type":"boolean"},"name":{"type":"string"}}},
+        "podSecurityContext": {"type":"object","properties":{"fsGroupChangePolicy":{"type":"string"}},"additionalProperties": true},
+        "containerPorts": {"type":"object","properties":{"http":{"type":"integer"},"https":{"oneOf":[{"type":"integer"},{"type":"null"}]}}},
+        "extraVolumeMounts": {"type":"array","items": {"type":"object","properties":{"name":{"type":"string"},"mountPath":{"type":"string"}},"required":["name","mountPath"]}},
+        "existingServerBlockConfigmap": {"type":"string"},
+        "livenessProbe": {"type":"object","properties":{"enabled":{"type":"boolean"}},"additionalProperties": true},
+        "readinessProbe": {"type":"object","properties":{"enabled":{"type":"boolean"}},"additionalProperties": true},
+        "customReadinessProbe": {
+          "type":"object",
+          "properties": {
+            "tcpSocket": {"type":"object","properties":{"port":{"type":"integer"}},"required":["port"]},
+            "initialDelaySeconds": {"type":"integer"},
+            "periodSeconds": {"type":"integer"}
+          }
+        },
+        "customLivenessProbe": {
+          "type":"object",
+          "properties": {
+            "tcpSocket": {"type":"object","properties":{"port":{"type":"integer"}},"required":["port"]},
+            "initialDelaySeconds": {"type":"integer"},
+            "periodSeconds": {"type":"integer"}
+          }
+        }
+      }
+    }
+  },
+  "definitions": {}
+}

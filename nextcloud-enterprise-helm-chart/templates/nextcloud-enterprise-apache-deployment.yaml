@@ -1,0 +1,154 @@
+{{- if eq .Values.APACHE_HOST "nextcloud-enterprise-apache" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: nextcloud-enterprise-apache
+  name: nextcloud-enterprise-apache
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: nextcloud-enterprise-apache
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        {{- if .Values.APACHE_ADDITIONAL_ANNOTATIONS_AND_LABELS }}
+        {{- if .Values.APACHE_ADDITIONAL_ANNOTATIONS_AND_LABELS.annotations }}
+        {{- toYaml .Values.APACHE_ADDITIONAL_ANNOTATIONS_AND_LABELS.annotations | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        com.nextcloud.enterprise-aio.version: "v{{ .Chart.Version }}"
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        {{- if .Values.APACHE_ADDITIONAL_ANNOTATIONS_AND_LABELS }}
+        {{- if .Values.APACHE_ADDITIONAL_ANNOTATIONS_AND_LABELS.labels }}
+        {{- toYaml .Values.APACHE_ADDITIONAL_ANNOTATIONS_AND_LABELS.labels | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        io.kompose.service: nextcloud-enterprise-apache
+    spec:
+      {{- if .Values.SERVICE_ACCOUNT }}
+      serviceAccountName: "{{ .Values.SERVICE_ACCOUNT }}"
+      {{- end }}
+      {{- if .Values.IMAGE_PULL_SECRET }}
+      imagePullSecrets:
+        - name: {{ .Values.IMAGE_PULL_SECRET }}
+      {{- end }}
+      securityContext:
+        # The items below only work in pod context
+        fsGroup: {{ .Values.NEXTCLOUD_UGID | default 33 }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        # The items below work in both contexts
+        runAsUser: {{ .Values.NEXTCLOUD_UGID | default 33 }}
+        runAsGroup: {{ .Values.NEXTCLOUD_UGID | default 33 }}
+        runAsNonRoot: true
+        {{- if eq (.Values.RPSS_ENABLED | default "no") "yes" }}
+        seccompProfile:
+          type: RuntimeDefault
+        {{- end }}
+      containers:
+        - env:
+            - name: ADDITIONAL_TRUSTED_DOMAIN
+              value: "{{ .Values.ADDITIONAL_TRUSTED_DOMAIN }}"
+            - name: AIO_LOG_LEVEL
+              value: "{{ .Values.AIO_LOG_LEVEL }}"
+            - name: APACHE_HOST
+              value: nextcloud-enterprise-apache
+            - name: APACHE_MAX_SIZE
+              value: "{{ .Values.APACHE_MAX_SIZE }}"
+            - name: APACHE_MAX_TIME
+              value: "{{ .Values.NEXTCLOUD_MAX_TIME }}"
+            - name: APACHE_PORT
+              value: "{{ .Values.APACHE_PORT }}"
+            - name: COLLABORA_HOST
+              value: nextcloud-enterprise-collabora
+            - name: EUROOFFICE_HOST
+              value: nextcloud-enterprise-eurooffice
+            - name: NC_DOMAIN
+              value: "{{ .Values.NC_DOMAIN }}"
+            - name: NEXTCLOUD_HOST
+              value: nextcloud-enterprise-nextcloud
+            - name: NOTIFY_PUSH_HOST
+              value: nextcloud-enterprise-notify-push
+            - name: ONLYOFFICE_HOST
+              value: nextcloud-enterprise-onlyoffice
+            - name: TALK_HOST
+              value: nextcloud-enterprise-talk
+            - name: TZ
+              value: "{{ .Values.TIMEZONE }}"
+            - name: WHITEBOARD_HOST
+              value: nextcloud-enterprise-whiteboard
+          image: "{{ .Values.IMAGE_MIRROR_PREFIX }}{{ .Values.NEXTCLOUD_IMAGE_ORG }}/aio-apache:20260609_115915"
+          {{- if .Values.APACHE_RESOURCES }}
+          resources:
+            {{- toYaml .Values.APACHE_RESOURCES | nindent 12 }}
+          {{- end }}
+          readinessProbe:
+            exec:
+              command:
+                - /healthcheck.sh
+            failureThreshold: 3
+            periodSeconds: 30
+            timeoutSeconds: 30
+          livenessProbe:
+            exec:
+              command:
+                - /healthcheck.sh
+            failureThreshold: 3
+            periodSeconds: 30
+            timeoutSeconds: 30
+          name: nextcloud-enterprise-apache
+          ports:
+            - containerPort: {{ .Values.APACHE_PORT }}
+              protocol: TCP
+            - containerPort: {{ .Values.APACHE_PORT }}
+              protocol: UDP
+          securityContext:
+            # The items below only work in container context
+            allowPrivilegeEscalation: false
+            capabilities:
+              {{- if eq (.Values.RPSS_ENABLED | default "no") "yes" }}
+              drop: ["ALL"]
+              {{- else }}
+              drop: ["NET_RAW"]
+              {{- end }}
+              add: ["NET_BIND_SERVICE"]
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: nextcloud-enterprise-nextcloud
+              readOnly: true
+            - mountPath: /mnt/data
+              name: nextcloud-enterprise-apache
+      volumes:
+        - name: nextcloud-enterprise-nextcloud
+          {{- if (and .Values.NFS_SERVER (not (eq (.Values.USE_PVS | default "no") "yes"))) }}
+          nfs:
+            server: {{ .Values.NFS_SERVER }}
+            path: "{{ .Values.NFS_PREFIX }}/nextcloud-enterprise-nextcloud"
+          {{- else if .Values.HOST_PATH }}
+          hostPath:
+            path: {{ .Values.HOST_PATH }}/nextcloud-enterprise-nextcloud
+            type: Directory
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: nextcloud-enterprise-nextcloud
+          {{- end }}
+        - name: nextcloud-enterprise-apache
+          {{- if (and .Values.NFS_SERVER (not (eq (.Values.USE_PVS | default "no") "yes"))) }}
+          nfs:
+            server: {{ .Values.NFS_SERVER }}
+            path: "{{ .Values.NFS_PREFIX }}/nextcloud-enterprise-apache"
+          {{- else if .Values.HOST_PATH }}
+          hostPath:
+            path: {{ .Values.HOST_PATH }}/nextcloud-enterprise-apache
+            type: Directory
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: nextcloud-enterprise-apache
+          {{- end }}
+{{- end }}

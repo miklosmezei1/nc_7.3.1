@@ -1,0 +1,2 @@
+# Exclude local helper scripts from chart packages
+update-helm.sh

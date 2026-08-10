@@ -1,0 +1,100 @@
+flowchart LR
+    INET(["☁️ Internet\n(Clients)"])
+
+    subgraph INGRESS_HELM["Ingress Helm Chart"]
+        NGINX_ING["Nginx Ingress Controller\n:443 LoadBalancer\n(TLS termination)"]
+    end
+
+    subgraph AIO["Enterprise-AIO Helm Chart — Scalable"]
+        subgraph NGX["nginx webserver"]
+            NGINX["nginx\n:80 HTTP"]
+        end
+
+        subgraph CORE["Core Services"]
+            direction TB
+            NEXTCLOUD["Nextcloud\n:9000"]
+            MGMT["Nextcloud Management\n:9001"]
+            NOTIFY["Notify-Push\n:7867"]
+        end
+
+        subgraph OPT["Optional Services (bundled)"]
+            direction TB
+            IMAGINARY["Imaginary\n:9000"]
+            WHITEBOARD["Whiteboard\n:3002"]
+            CLAMAV["ClamAV\n:3310"]
+            RECORDING["Talk-Recording\n:1234"]
+        end
+    end
+
+    subgraph DB_HELM["DB Helm (external)"]
+        PG_CLUSTER[("PostgreSQL Cluster\nPOSTGRES_PORT\n(default: 5432)")]
+    end
+
+    subgraph CACHE_HELM["Cache Helm (external)"]
+        REDIS_CLUSTER[("Redis / Redis Cluster\nREDIS_PORT\n(default: 6379)")]
+    end
+
+    subgraph COL_HELM["Collabora Helm (external)"]
+        COLLABORA_EXT["Collabora Online\n:9980"]
+    end
+
+    subgraph TALK_HELM["Struktur AG Helm (external)"]
+        TALK_EXT["Talk HPB\n:8081 internal\n:443 via Ingress"]
+        TURN_EXT["TURN Server (optional)\n:443 TCP\nTALK_PORT TCP+UDP\n(default: 3478)\nUDP :20000-40000"]
+    end
+
+    subgraph FTS_HELM["Elasticsearch Helm (external)"]
+        FTS_EXT[("Elasticsearch\nFULLTEXTSEARCH_PORT\n(default: 9200)")]
+    end
+
+    subgraph OO_HELM["OnlyOffice Helm (external)"]
+        OO_EXT["OnlyOffice Document Server\n:80"]
+    end
+
+    subgraph EXT["External Infrastructure & Optional Services"]
+        direction TB
+        STORAGE[("NFS / Object Storage\nS3 / Swift\nOBJECTSTORE_S3_PORT\n(user data)")]
+        HARP_S["HaRP ExApp Daemon\n(optional, separate chart)"]
+    end
+
+    INET -- "① HTTPS NC_DOMAIN:443 TCP 🔒" --> NGINX_ING
+    INET -- "② UDP :20000-40000 🔒\n+ STUN/TURN TALK_PORT/:443 🔒\n(default: 3478)" --> TURN_EXT
+    INET -- "③ HTTPS COLLABORA_HOST:443 🔒" --> NGINX_ING
+    INET -- "④ HTTPS TALK_HOST:443 🔒" --> NGINX_ING
+
+    NGINX_ING -- "⑤ HTTP :80 🌐" --> NGINX
+    NGINX_ING -- "⑥ HTTP (port as configured) 🌐" --> COLLABORA_EXT
+    NGINX_ING -- "⑦ HTTP (port as configured) 🌐" --> OO_EXT
+    NGINX_ING -- "⑧ HTTP (port as configured) 🌐" --> TALK_EXT
+
+    NGINX -- "⑨ FastCGI :9000 🌐" --> NEXTCLOUD
+    NGINX -- "⑩ HTTP :7867 🌐" --> NOTIFY
+
+    NEXTCLOUD -- "⑪ PostgreSQL POSTGRES_PORT ⚠️\n(default: 5432)" --> PG_CLUSTER
+    NEXTCLOUD -- "⑫ Redis REDIS_PORT ⚠️\n(default: 6379)" --> REDIS_CLUSTER
+    NEXTCLOUD -- "⑬ clamd :3310 🌐" --> CLAMAV
+    NEXTCLOUD -- "⑭ HTTP :9000 🌐" --> IMAGINARY
+    NEXTCLOUD -- "⑮ FULLTEXTSEARCH_PROTOCOL:FULLTEXTSEARCH_PORT ⚠️\n(default: http:9200)" --> FTS_EXT
+    NEXTCLOUD -- "⑯ HTTPS :443 🔒" --> NGINX_ING
+    NEXTCLOUD -- "⑰ HTTP :80 🌐" --> OO_EXT
+    NEXTCLOUD -- "⑱ HTTP :3002 🌐" --> WHITEBOARD
+    NEXTCLOUD -- "⑲ S3 🔒\n(OBJECTSTORE_S3_PORT)" --> STORAGE
+
+    MGMT -- "㉑ PostgreSQL POSTGRES_PORT ⚠️\n(default: 5432)" --> PG_CLUSTER
+    MGMT -- "㉒ Redis REDIS_PORT ⚠️\n(default: 6379)" --> REDIS_CLUSTER
+
+    NOTIFY -- "㉔ HTTP :9001 🌐" --> MGMT
+    NOTIFY -- "㉕ Redis REDIS_PORT ⚠️\n(default: 6379)" --> REDIS_CLUSTER
+
+    WHITEBOARD -- "㉖ Redis REDIS_PORT 🌐\n(default: 6379)" --> REDIS_CLUSTER
+    WHITEBOARD -- "㉗ HTTPS NC_DOMAIN:443 🔒" --> NGINX_ING
+
+    COLLABORA_EXT -- "㉘ HTTPS NC_DOMAIN:443 🔒" --> NGINX_ING
+    OO_EXT -- "㉙ HTTPS NC_DOMAIN:443 🔒" --> NGINX_ING
+
+    TALK_EXT -- "㉚ HTTPS NC_DOMAIN:443 🔒" --> NGINX_ING
+
+    RECORDING -- "㉛ HTTPS TALK_HOST:443 🔒" --> NGINX_ING
+    RECORDING -- "㉜ HTTPS NC_DOMAIN:443 🔒" --> NGINX_ING
+
+    INET -- "㉝ HTTPS ONLYOFFICE_HOST:443 🔒" --> NGINX_ING

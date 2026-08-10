@@ -1,0 +1,379 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-nextcloud-horizontal-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nextcloud-enterprise-nextcloud
+  minReplicas: 1
+  maxReplicas: {{ .Values.MAX_REPLICAS | default 10 }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 60
+
+---
+
+{{- if eq .Values.IMAGINARY_ENABLED "yes" }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-imaginary-horizontal-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nextcloud-enterprise-imaginary
+  minReplicas: 1
+  maxReplicas: {{ .Values.MAX_REPLICAS | default 10 }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 60
+{{- end }}
+
+---
+
+{{- if eq .Values.WHITEBOARD_ENABLED "yes" }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-whiteboard-horizontal-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nextcloud-enterprise-whiteboard
+  minReplicas: 1
+  maxReplicas: {{ .Values.MAX_REPLICAS | default 10 }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 60
+{{- end }}
+
+---
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-notify-push-horizontal-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nextcloud-enterprise-notify-push
+  minReplicas: 1
+  maxReplicas: {{ .Values.MAX_REPLICAS | default 10 }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 60
+
+---
+
+{{- if eq .Values.VPA_ENABLED "yes" }}
+{{- if eq .Values.APACHE_HOST "nextcloud-enterprise-apache" }}
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-apache-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-apache
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- end }}
+
+{{- if eq .Values.CLAMAV_ENABLED "yes" }}
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-clamav-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-clamav
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- end }}
+
+{{- if and (eq .Values.COLLABORA_HOST "nextcloud-enterprise-collabora") (eq .Values.COLLABORA_ENABLED "yes") }}
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-collabora-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-collabora
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- end }}
+
+{{- if eq .Values.POSTGRES_HOST "nextcloud-enterprise-database" }}
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-database-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-database
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- end }}
+
+{{- if eq .Values.EUROOFFICE_ENABLED "yes" }}
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-eurooffice-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-eurooffice
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- end }}
+
+{{- if and (eq (.Values.FULLTEXTSEARCH_HOST | default "nextcloud-enterprise-fulltextsearch") "nextcloud-enterprise-fulltextsearch") (eq .Values.FULLTEXTSEARCH_ENABLED "yes") }}
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-fulltextsearch-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-fulltextsearch
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- end }}
+
+{{- if eq .Values.IMAGINARY_ENABLED "yes" }}
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-imaginary-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-imaginary
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- end }}
+
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-nextcloud-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-nextcloud
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-nextcloud-management-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-nextcloud-management
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-notify-push-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-notify-push
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- if and (eq (.Values.ONLYOFFICE_HOST | default "nextcloud-enterprise-onlyoffice") "nextcloud-enterprise-onlyoffice") (eq .Values.ONLYOFFICE_ENABLED "yes") }}
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-onlyoffice-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-onlyoffice
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- end }}
+
+{{- if eq .Values.REDIS_HOST "nextcloud-enterprise-redis" }}
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-redis-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-redis
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- end }}
+
+{{- if and (eq .Values.TALK_HOST "nextcloud-enterprise-talk") (eq .Values.TALK_ENABLED "yes") }}
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-talk-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-talk
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- end }}
+
+{{- if eq .Values.TALK_RECORDING_ENABLED "yes" }}
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-talk-recording-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-talk-recording
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- end }}
+
+{{- if eq .Values.WHITEBOARD_ENABLED "yes" }}
+
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nextcloud-enterprise-whiteboard-vertical-autoscaler
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind:       Deployment
+    name:       nextcloud-enterprise-whiteboard
+  updatePolicy:
+    updateMode: "Initial"
+
+---
+{{- end }}
+
+{{- end }}

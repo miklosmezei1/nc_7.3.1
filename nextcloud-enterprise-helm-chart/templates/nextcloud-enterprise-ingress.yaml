@@ -1,0 +1,61 @@
+{{- if eq .Values.INGRESS_ENABLED "yes" }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nextcloud-enterprise-ingress
+  namespace: "{{ .Values.NAMESPACE }}"
+  annotations:
+    # For ingress-nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: "{{ .Values.APACHE_MAX_SIZE }}"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    # For NGINX Ingress Controller
+    nginx.org/client-max-body-size: "{{ .Values.APACHE_MAX_SIZE }}"
+    nginx.org/path-regex: "case_insensitive"
+    nginx.org/websocket-services: "{{ .Values.APACHE_HOST }}"
+    nginx.org/keepalive: "320"
+    nginx.org/proxy-connect-timeout: "5"
+    nginx.org/server-snippets: |
+      client_header_timeout 60s;
+      client_body_timeout {{ .Values.NEXTCLOUD_MAX_TIME }}s;
+    nginx.org/proxy-buffering: "false"
+    nginx.org/location-snippets: |
+      proxy_request_buffering on;
+      proxy_set_header X-Request-ID           $req_id;
+{{- if .Values.INGRESS_CLUSTER_ISSUER }}
+    cert-manager.io/cluster-issuer: "{{ .Values.INGRESS_CLUSTER_ISSUER }}"
+{{- end }}
+spec:
+{{- if .Values.INGRESS_CLASS_NAME }}
+  ingressClassName: "{{ .Values.INGRESS_CLASS_NAME }}"
+{{- end }}
+  rules:
+    - host: "{{ .Values.NC_DOMAIN }}"
+      http:
+        paths:
+          - pathType: Prefix
+            backend:
+              service:
+                name: "{{ .Values.APACHE_HOST }}"
+                port:
+                  number: 80
+            path: /
+{{- if .Values.ADDITIONAL_TRUSTED_DOMAIN }}
+    - host: "{{ .Values.ADDITIONAL_TRUSTED_DOMAIN }}"
+      http:
+        paths:
+          - pathType: Prefix
+            backend:
+              service:
+                name: "{{ .Values.APACHE_HOST }}"
+                port:
+                  number: 80
+            path: /
+{{- end }}
+  tls:
+    - hosts:
+        - "{{ .Values.NC_DOMAIN }}"
+{{- if .Values.ADDITIONAL_TRUSTED_DOMAIN }}
+        - "{{ .Values.ADDITIONAL_TRUSTED_DOMAIN }}"
+{{- end }}
+      secretName: nextcloud-enterprise-ingress-tls
+{{- end }}

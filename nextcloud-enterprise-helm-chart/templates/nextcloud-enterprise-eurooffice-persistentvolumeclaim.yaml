@@ -1,0 +1,46 @@
+{{- if (or (eq (.Values.USE_PVS | default "no") "yes") (not (or .Values.NFS_SERVER .Values.HOST_PATH))) }}
+{{- if eq .Values.EUROOFFICE_ENABLED "yes" }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: nextcloud-enterprise-eurooffice
+    {{- if .Values.PVC_LABELS }}
+    {{- toYaml .Values.PVC_LABELS | nindent 4 }}
+    {{- end }}
+  name: nextcloud-enterprise-eurooffice
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  {{- if .Values.STORAGE_CLASS }}
+  storageClassName: {{ .Values.STORAGE_CLASS }}
+  {{- end }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.EUROOFFICE_STORAGE_SIZE }}
+  {{- if eq (.Values.USE_PVS | default "no") "yes" }}
+  volumeName: "nextcloud-enterprise-eurooffice-{{ .Values.NAMESPACE }}"
+  {{- end }}
+{{- if eq (.Values.USE_PVS | default "no") "yes" }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "nextcloud-enterprise-eurooffice-{{ .Values.NAMESPACE }}"
+  {{- if .Values.PVC_LABELS }}
+  labels:
+    {{- toYaml .Values.PVC_LABELS | nindent 4 }}
+  {{- end }}
+spec:
+  storageClassName: {{ .Values.STORAGE_CLASS }}
+  capacity:
+      storage: {{ .Values.EUROOFFICE_STORAGE_SIZE }}
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    path: "{{ .Values.NFS_PREFIX }}/nextcloud-enterprise-eurooffice"
+    server: "{{ .Values.NFS_SERVER }}"
+{{- end }}
+{{- end }}
+{{- end }}

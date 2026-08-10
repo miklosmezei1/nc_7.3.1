@@ -1,0 +1,54 @@
+name: Update Helm Chart
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron:  '00 12 * * *'
+  workflow_run:
+    workflows: ["Build docker images"]
+    types:
+      - completed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-helm:
+    name: update helm chart
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: update helm chart
+        run: |
+          set -x
+          GHCR_TOKEN="$(curl https://ghcr.io/token?scope=repository:nextcloud-releases/nce-php-fpm-mgmt:pull | jq '.token' | sed 's|"||g')"
+          DOCKER_TAG="$(curl -H "Authorization: Bearer ${GHCR_TOKEN}" -L -s 'https://ghcr.io/v2/nextcloud-releases/nce-php-fpm-mgmt/tags/list?page_size=1024' | jq '.tags' | sed 's|"||g;s|[[:space:]]||g;s|,||g' | grep '^20[0-9_]\+' | grep -v latest | sort -r | head -1)"
+          if [ -z "$DOCKER_TAG" ]; then
+            exit 1
+          fi
+          set +x
+          sudo bash nextcloud-enterprise-helm-chart/update-helm.sh "$DOCKER_TAG"
+
+      - name: Install Helm
+        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
+        with:
+          version: v3.11.1
+
+      - name: Update chart.lock
+        run: helm dependency update nextcloud-enterprise-helm-chart
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v7
+        with:
+          commit-message: Helm Chart updates
+          signoff: true
+          title: Helm Chart updates
+          body: Automated Helm Chart updates for the yaml files. It can be merged if it looks good at any time which will automatically trigger a new release of the helm chart if the version was adjusted.
+          labels: dependencies, 3. to review
+          milestone: next
+          branch: aio-helm-update
+          token: ${{ secrets.GITHUB_TOKEN }}

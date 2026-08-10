@@ -1,0 +1,19 @@
+{{- if eq .Values.POSTGRES_HOST "nextcloud-enterprise-database" }}
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: nextcloud-enterprise-database
+  name: nextcloud-enterprise-database
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  ipFamilyPolicy: PreferDualStack
+  ports:
+    - name: "5432"
+      port: 5432
+      targetPort: 5432
+  selector:
+    io.kompose.service: nextcloud-enterprise-database
+{{- end }}

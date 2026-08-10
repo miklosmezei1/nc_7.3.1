@@ -1,0 +1,10 @@
+## Values for the ingress-nginx helm chart
+## Ref https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx
+
+controller:
+  config:
+    # Increase timeout of uploads from clients
+    # Should be synced with NEXTCLOUD_MAX_TIME
+    client-body-timeout: "3600"
+  service:
+    externalTrafficPolicy: Local

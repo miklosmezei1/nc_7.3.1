@@ -1,0 +1,43 @@
+# Inspired by https://github.com/nextcloud/all-in-one/blob/main/.github/workflows/update-sh.yml
+name: nextcloud-update
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron:  '00 12 * * *'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  run_update_sh:
+    name: Run nextcloud-update script
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      with:
+        persist-credentials: false
+    - name: Run nextcloud-update script
+      run: |
+        set -x
+        git clone https://github.com/nextcloud/all-in-one.git --depth 1
+        NC_VERISON="$(grep "ENV NEXTCLOUD_VERSION" ./all-in-one/Containers/nextcloud/Dockerfile | grep -oP '[23][0-9].*$')"
+        NC_MAJOR="$(grep "ENV NEXTCLOUD_VERSION" ./all-in-one/Containers/nextcloud/Dockerfile | grep -oP '[23][0-9]')"
+        rm -r ./all-in-one
+
+        NCVERSION=$(curl -s -m 900 https://download.nextcloud.com/server/releases/ | sed --silent 's/.*href="nextcloud-\([^"]\+\).zip.asc".*/\1/p' | grep "$NC_MAJOR" | sort --version-sort | tail -1)
+        if [ -n "$NCVERSION" ] && ! grep "^ENTERPRISE_ARCHIVE_URL" ./nextcloud-enterprise-helm-chart/update-helm.sh | grep -q "$NC_VERISON"; then
+          sed -i "s|^ENTERPRISE_ARCHIVE_URL:.*|ENTERPRISE_ARCHIVE_URL: please update the version link manually via the portal!!!|" ./nextcloud-enterprise-helm-chart/update-helm.sh
+        fi
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v7
+      with:
+        commit-message: nextcloud-update automated change
+        signoff: true
+        title: Nextcloud dependency update
+        body: Automated Nextcloud container update
+        labels: dependencies, 3. to review
+        milestone: next
+        branch: nextcloud-container-update

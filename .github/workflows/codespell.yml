@@ -1,0 +1,26 @@
+name: 'Codespell'
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  codespell:
+    name: Check spelling
+    runs-on: self-hosted
+    steps:
+      - name: Check out code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Check spelling
+        uses: codespell-project/actions-codespell@8f01853be192eb0f849a5c7d721450e7a467c579 # v2
+        with:
+          check_filenames: true
+          check_hidden: true
+          ignore_words_list: aks,AKS,Auxiliar

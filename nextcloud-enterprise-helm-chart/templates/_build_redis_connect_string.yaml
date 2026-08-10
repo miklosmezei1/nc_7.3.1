@@ -1,0 +1,68 @@
+{{- define "build_redis_connect_string" }}
+  {{- /* This template MUST be run through `nospace` to actually produce a valid URL! */ -}}
+
+  {{- $protocol := "" -}}
+  {{- if and .Values.NEXTCLOUD_TRUSTED_CERTIFICATES .Values.NEXTCLOUD_TRUSTED_CERTIFICATES.REDIS }}
+    {{- $protocol = "tls://" }}
+  {{- else }}
+    {{- $protocol = "tcp://" }}
+  {{- end }}
+
+  {{- if eq (.Values.REDIS_MODE | default "redis") "rediscluster" -}}
+    &seed[]={{ $protocol }}{{ .Values.REDIS_HOST }}:{{ .Values.REDIS_PORT }}
+    {{- if .Values.REDIS_HOST_2 }}
+      &seed[]={{ $protocol }}{{ .Values.REDIS_HOST_2 }}:{{ .Values.REDIS_PORT_2 }}
+    {{- end }}
+    {{- if .Values.REDIS_HOST_3 }}
+      &seed[]={{ $protocol }}{{ .Values.REDIS_HOST_3 }}:{{ .Values.REDIS_PORT_3 }}
+    {{- end }}
+    {{- if .Values.REDIS_HOST_4 }}
+      &seed[]={{ $protocol }}{{ .Values.REDIS_HOST_4 }}:{{ .Values.REDIS_PORT_4 }}
+    {{- end }}
+    {{- if .Values.REDIS_HOST_5 }}
+      &seed[]={{ $protocol }}{{ .Values.REDIS_HOST_5 }}:{{ .Values.REDIS_PORT_5 }}
+    {{- end }}
+    {{- if .Values.REDIS_HOST_6 }}
+      &seed[]={{ $protocol }}{{ .Values.REDIS_HOST_6 }}:{{ .Values.REDIS_PORT_6 }}
+    {{- end }}
+    {{- if .Values.REDIS_HOST_7 }}
+      &seed[]={{ $protocol }}{{ .Values.REDIS_HOST_7 }}:{{ .Values.REDIS_PORT_7 }}
+    {{- end }}
+    {{- if .Values.REDIS_HOST_8 }}
+      &seed[]={{ $protocol }}{{ .Values.REDIS_HOST_8 }}:{{ .Values.REDIS_PORT_8 }}
+    {{- end }}
+    {{- if .Values.REDIS_HOST_9 }}
+      &seed[]={{ $protocol }}{{ .Values.REDIS_HOST_9 }}:{{ .Values.REDIS_PORT_9 }}
+    {{- end }}
+  {{- else -}}
+    {{ $protocol }}{{ .Values.REDIS_HOST }}:{{ .Values.REDIS_PORT }}?database={{ .Values.REDIS_DB_INDEX }}
+  {{- end }}
+  
+  &timeout=3.0&read_timeout=10.0&failover=error&persistent=1
+  
+  {{- if .Values.REDIS_PREFIX }}
+    &prefix={{ .Values.REDIS_PREFIX }}
+  {{- end }}
+  
+  {{- /*
+    The connect string is parsed as a URL by PHP (e.g. session.save_path), so
+    the auth value MUST be URL-encoded. When not using secrets the password is
+    known at render time, so we url-encode it here with `urlquery`. With
+    USE_SECRETS the value is only available at runtime via the env var, so we
+    fall back to the $(REDIS_HOST_PASSWORD) reference (passwords with URL-unsafe
+    characters are not supported in that mode).
+  */ -}}
+  {{- $password := "$(REDIS_HOST_PASSWORD)" -}}
+  {{- if ne (.Values.USE_SECRETS | default "no") "yes" -}}
+    {{- $password = .Values.REDIS_PASSWORD | toString | urlquery -}}
+  {{- end -}}
+  {{- if .Values.REDIS_USER }}
+    &auth[]={{ .Values.REDIS_USER }}
+    &auth[]={{ $password }}
+  {{- else }}
+    &auth={{ $password }}
+  {{- end }}
+  {{- if eq $protocol "tls://" }}
+    &stream[cafile]={{ urlquery "/var/www/html/data/certificates/ca-bundle.crt" }}
+  {{- end }}
+{{- end }}

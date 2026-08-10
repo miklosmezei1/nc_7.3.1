@@ -1,0 +1,323 @@
+USE_SECRETS: "no"         # Setting this to "yes" allows to use secrets instead of plain text env variables. The secrets need to be created beforehand manually in the format name: $SECRET_NAME, key: $SECRET_NAME. See https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/How-to-use-secrets or the local article at '../docs/How to use secrets.md'
+DATABASE_PASSWORD:           # TODO! This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+EUROOFFICE_SECRET:           # TODO! This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+FULLTEXTSEARCH_PASSWORD:           # TODO! This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+IMAGINARY_SECRET:           # TODO! This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+NC_DOMAIN: yourdomain.com          # TODO! Needs to be changed to the domain that you want to use for Nextcloud.
+NEXTCLOUD_PASSWORD:           # TODO! This is the password or a secret name if you enable USE_SECRETS at the top of the file. It is the password of the initially created Nextcloud admin with username admin.
+ONLYOFFICE_SECRET:           # TODO! This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+RECORDING_SECRET:           # TODO! This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+REDIS_PASSWORD:           # TODO! This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+SIGNALING_SECRET:           # TODO! This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+TALK_INTERNAL_SECRET:           # TODO! This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+TIMEZONE: Europe/Berlin          # TODO! This is the timezone that your containers will use.
+TURN_SECRET:           # TODO! This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+WHITEBOARD_SECRET:           # TODO! This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+
+CLAMAV_ENABLED: "no"          # Setting this to "yes" (with quotes) enables the option in Nextcloud automatically.
+COLLABORA_ENABLED: "no"          # Setting this to "yes" (with quotes) enables the option in Nextcloud automatically.
+EUROOFFICE_ENABLED: "no"          # Setting this to "yes" (with quotes) enables the option in Nextcloud automatically.
+FULLTEXTSEARCH_ENABLED: "no"          # Setting this to "yes" (with quotes) enables the option in Nextcloud automatically.
+IMAGINARY_ENABLED: "no"          # Setting this to "yes" (with quotes) enables the option in Nextcloud automatically.
+ONLYOFFICE_ENABLED: "no"          # Setting this to "yes" (with quotes) enables the option in Nextcloud automatically.
+TALK_ENABLED: "no"          # Setting this to "yes" (with quotes) enables the option in Nextcloud automatically.
+TALK_RECORDING_ENABLED: "no"          # Setting this to "yes" (with quotes) enables the option in Nextcloud automatically.
+WHITEBOARD_ENABLED: "no"          # Setting this to "yes" (with quotes) enables the option in Nextcloud automatically.
+
+AIO_LOG_LEVEL: warn          # Allows to adjust the global AIO log level. Valid values are debug, info, warn and error.
+APACHE_MAX_SIZE: "17179869184"          # This needs to be an integer and in sync with NEXTCLOUD_UPLOAD_LIMIT
+APACHE_PORT: 443          # Changing this to a different value than 443 will allow you to run it behind a web server or reverse proxy (like Apache, Nginx, Caddy, Cloudflare Tunnel and else).
+ADDITIONAL_COLLABORA_OPTIONS: ['--o:security.seccomp=true']          # You can add additional collabora options here by using the array syntax.
+COLLABORA_DICTIONARIES: de_DE en_GB en_US es_ES fr_FR it nl pt_BR pt_PT ru        # You can change this in order to enable other dictionaries for collabora
+FULLTEXTSEARCH_JAVA_OPTIONS: -Xms512M -Xmx512M          # Allows to adjust the fulltextsearch java options.
+INSTALL_LATEST_MAJOR: "no"        # Setting this to "yes" will install the latest Major Nextcloud version upon the first installation
+NEXTCLOUD_MAX_TIME: 3600          # This allows to change the upload time limit of the Nextcloud container
+NEXTCLOUD_MEMORY_LIMIT: 512M          # This allows to change the PHP memory limit of the Nextcloud container
+NEXTCLOUD_STARTUP_APPS: deck twofactor_totp tasks calendar contacts notes        # Allows to modify the Nextcloud apps that are installed on starting AIO the first time. You can also disable apps by using a hyphen in front of them. E.g. -app_api
+NEXTCLOUD_UPLOAD_LIMIT: 16G          # This allows to change the upload limit of the Nextcloud container
+REMOVE_DISABLED_APPS: "yes"        # Setting this to "no" keep Nextcloud apps that are disabled via their switch and not uninstall them if they should be installed in Nextcloud.
+TALK_PORT: 3478          # This allows to adjust the port that the talk container is using. It should be set to something higher than 1024! Otherwise it might not work!
+UPDATE_NEXTCLOUD_APPS: "no"          # When setting to "yes" (with quotes), it will automatically update all installed Nextcloud apps upon container startup on saturdays.
+
+STORAGE_CLASS:        # By setting this, you can adjust the storage class for your volumes. This should be a fast storage like SSD backed storage! This storage class must provide RWX and RWO volumes (ReadWriteMany and ReadWriteOnce).
+STORAGE_CLASS_DATA:        # Allows to set a dedicated storage class for the Nextcloud data volume. This can be a bit slower storage than the one above. This storage class must provide RWX volumes (ReadWriteMany). ⚠️ Warning: only set this for new installations, not existing ones!
+APACHE_STORAGE_SIZE: 1Gi       # You can change the size of the apache volume that default to 1Gi with this value
+CLAMAV_STORAGE_SIZE: 1Gi       # You can change the size of the clamav volume that default to 1Gi with this value
+DATABASE_STORAGE_SIZE: 1Gi       # You can change the size of the database volume that default to 1Gi with this value
+DATABASE_DUMP_STORAGE_SIZE: 1Gi       # You can change the size of the database-dump volume that default to 1Gi with this value
+ELASTICSEARCH_STORAGE_SIZE: 1Gi       # You can change the size of the elasticsearch volume that default to 1Gi with this value
+EUROOFFICE_STORAGE_SIZE: 1Gi       # You can change the size of the eurooffice volume that default to 1Gi with this value
+NEXTCLOUD_STORAGE_SIZE: 5Gi       # You can change the size of the nextcloud volume that default to 1Gi with this value
+NEXTCLOUD_DATA_STORAGE_SIZE: 5Gi       # You can change the size of the nextcloud-data volume that default to 1Gi with this value
+ONLYOFFICE_STORAGE_SIZE: 1Gi       # You can change the size of the onlyoffice volume that default to 1Gi with this value
+REDIS_STORAGE_SIZE: 1Gi       # You can change the size of the redis volume that default to 1Gi with this value
+TALK_RECORDING_STORAGE_SIZE: 1Gi       # You can change the size of the talk-recording volume that default to 1Gi with this value
+
+NAMESPACE: &NAMESPACE default        # By changing this, you can adjust the namespace of the installation which allows to install multiple instances on one kubernetes cluster !!! Keep the &NAMESPACE anchor in chase you want to use nginx !!!
+NAMESPACE_DISABLED: "no"        # By setting this to "yes", you can disabled the creation of the namespace so that you can use a pre-created one
+NETWORK_POLICY_ENABLED: "no"        # By setting this to "yes", you can enable a network policy that limits network access to the same namespace. Except the Web server service which is reachable from all endpoints.
+SUBSCRIPTION_KEY:        # This allows to set the Nextcloud Enterprise key via ENV
+SERVERINFO_TOKEN:        # This allows to set the serverinfo app token for monitoring your Nextcloud via the serverinfo app
+APPS_ALLOWLIST:        # This allows to configure allowed apps that will be shown in Nextcloud's Appstore. You need to enter the app-IDs of the apps here and separate them with spaces. E.g. 'files richdocuments'
+ADDITIONAL_TRUSTED_PROXY:        # Allows to add one additional ip-address to Nextcloud's trusted proxies and to the Office WOPI-allowlist automatically. Set it e.g. like this: 'your.public.ip-address'. You can also use an ip-range here.
+ADDITIONAL_TRUSTED_DOMAIN:        # Allows to add one domain to Nextcloud's trusted domains and also generates a certificate automatically for it
+NEXTCLOUD_DEFAULT_QUOTA: "10 GB"       # Allows to adjust the default quota that will be taken into account in Nextcloud for new users. Setting it to "unlimited" will set it to unlimited
+NEXTCLOUD_SKELETON_DIRECTORY:        # Allows to adjust the sekeleton dir for Nextcloud. Setting it to "empty" will set the value to an empty string "" which will turn off the setting for new users in Nextcloud.
+NEXTCLOUD_MAINTENANCE_WINDOW:        # Allows to define the maintenance window for Nextcloud. See https://docs.nextcloud.com/server/stable/admin_manual/configuration_server/background_jobs_configuration.html#parameters for possible values
+SMTP_HOST:        # (empty by default): The hostname of the SMTP server.
+SMTP_SECURE:         # (empty by default): Set to 'ssl' to use SSL, or 'tls' to use STARTTLS.
+SMTP_PORT:         # (default: '465' for SSL and '25' for non-secure connections): Optional port for the SMTP connection. Use '587' for an alternative port for STARTTLS.
+SMTP_AUTHTYPE:         # (default: 'LOGIN'): The method used for authentication. Use 'PLAIN' if no authentication or STARTLS is required.
+SMTP_NAME:         # (empty by default): The username for the authentication.
+SMTP_PASSWORD:          # (empty by default): The password for the authentication. This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+MAIL_FROM_ADDRESS:         # (not set by default): Set the local-part for the 'from' field in the emails sent by Nextcloud.
+MAIL_DOMAIN:         # (not set by default): Set a different domain for the emails than the domain where Nextcloud is installed.
+TALK_MAX_STREAM_BITRATE: "1048576"         # This allows to adjust the max stream bitrate of the talk hpb
+TALK_MAX_SCREEN_BITRATE: "2097152"         # This allows to adjust the max stream bitrate of the talk hpb
+
+IMAGE_MIRROR_PREFIX: ghcr.io/         # Setting this allows you to pull Nextcloud images through a mirror registry. It needs a trailing slash!
+NEXTCLOUD_IMAGE_ORG: nextcloud-releases          # Setting this allows you to change the image's org name in case a different image needs to be used e.g. for compliance reasons.
+
+APACHE_HOST: &APACHE_HOST nextcloud-enterprise-apache        # Setting this to something else than 'nextcloud-enterprise-apache' (keep the '&APACHE_HOST' before the actual value) will disable the functionality in this helm chart and allows you to use your own external service
+POSTGRES_HOST: nextcloud-enterprise-database        # Setting this to something else than 'nextcloud-enterprise-database' will disable the functionality in this helm chart and allows you to use your own external service
+POSTGRES_PORT: 5432        # This allows to configure the port on which the database is listening. ⚠️ Please note that the bundled Postgres container only supports port 5432!
+DATABASE_TYPE: postgres        # This allows to configure the database type for usage with an external database (the integrated one only supports 'postgres' as value). You also need to adjust POSTGRES_HOST to use your own service in that case. ⚠️ allowed values are currently 'postgres' and 'mysql'
+# NEXTCLOUD_TRUSTED_CERTIFICATES.MYSQL: # This allows to enable TLS connections for mysql. Please configure this further down at the NEXTCLOUD_TRUSTED_CERTIFICATES section. Also note that the built-in database container does not support this.
+# DATABASE_PASSWORD:           # This allows to set the db password which is getting set at the very top of this values.yaml file.
+POSTGRES_DB: nextcloud_database        # This allows to configure the database name for usage with an external database (the integrated one only supports 'nextcloud_database' as value). You also need to adjust POSTGRES_HOST to use your own service in that case. ⚠️ Make sure to use a different database for every instance if you use a global postgres server for all instances!
+# NEXTCLOUD_TRUSTED_CERTIFICATES.POSTGRES: # This allows to enable TLS connections for postgres. Please configure this further down at the NEXTCLOUD_TRUSTED_CERTIFICATES section. Also note that the built-in database container does not support this.
+POSTGRES_USER: nextcloud        # This allows to configure the database user for usage with an external database (the integrated one only supports 'nextcloud' as value). It needs to be set to something else than 'nextcloud' if you want to use it with an external database! You also need to adjust POSTGRES_HOST to use your own service in that case.
+REDIS_HOST: nextcloud-enterprise-redis        # Setting this to something else than 'nextcloud-enterprise-redis' will disable the functionality in this helm chart and allows you to use your own external service
+REDIS_MODE: "redis"        # This allows to configure the redis mode that is used. ⚠️ Only "redis" and "rediscluster" are supported. Please note that the built-in redis container only supports "redis" mode! Additionally, please note that the rediscluster mode is currently only compatible with redis cluster v7! Also, the whiteboard app currently does not support redis cluster.
+REDIS_DB_INDEX: "0"        # This allows to configure the redis db index that is used. ⚠️ Make sure to set a different db index for every instance if you use a global redis server for all instances! Also, the internal redis container only supports this value being set to "0"!
+REDIS_PREFIX:         # This allows to configure the redis custom prefix inside Nextcloud. This allows to use multiple Nextcloud instances with one redis cluster instances. ⚠️ Make sure to set a different prefix for every instance if you use a global cluster for all instances! Please note that the whiteboard app currently does not support this prefix.
+REDIS_USER:        # This allows to configure the redis user that is configured for the external redis server for authentication. ⚠️ The internal redis container does not support this variable!
+REDIS_PORT: 6379       # This allows to configure the redis port that is used to connect to redis. ⚠️ The internal redis container does not support this variable!
+REDIS_HOST_2:        # Optional additional redis host for rediscluster mode (use with REDIS_PORT_2)
+REDIS_PORT_2: 6379     # Optional port for REDIS_HOST_2 (default 6379)
+REDIS_HOST_3:        # Optional additional redis host for rediscluster mode (use with REDIS_PORT_3)
+REDIS_PORT_3: 6379     # Optional port for REDIS_HOST_3 (default 6379)
+REDIS_HOST_4:        # Optional additional redis host for rediscluster mode (use with REDIS_PORT_4)
+REDIS_PORT_4: 6379     # Optional port for REDIS_HOST_4 (default 6379)
+REDIS_HOST_5:        # Optional additional redis host for rediscluster mode (use with REDIS_PORT_5)
+REDIS_PORT_5: 6379     # Optional port for REDIS_HOST_5 (default 6379)
+REDIS_HOST_6:        # Optional additional redis host for rediscluster mode (use with REDIS_PORT_6)
+REDIS_PORT_6: 6379     # Optional port for REDIS_HOST_6 (default 6379)
+REDIS_HOST_7:        # Optional additional redis host for rediscluster mode (use with REDIS_PORT_7)
+REDIS_PORT_7: 6379     # Optional port for REDIS_HOST_7 (default 6379)
+REDIS_HOST_8:        # Optional additional redis host for rediscluster mode (use with REDIS_PORT_8)
+REDIS_PORT_8: 6379     # Optional port for REDIS_HOST_8 (default 6379)
+REDIS_HOST_9:        # Optional additional redis host for rediscluster mode (use with REDIS_PORT_9)
+REDIS_PORT_9: 6379     # Optional port for REDIS_HOST_9 (default 6379)
+# NEXTCLOUD_TRUSTED_CERTIFICATES.REDIS: # This allows to enable TLS connections for Redis. Please configure this further down at the NEXTCLOUD_TRUSTED_CERTIFICATES section.
+NEXTCLOUD_LOG_TYPE: "file"          # Setting this to "errorlog" allows to send all logs to the container logs which centralises logging. However this will disable the logreader app inside Nextcloud.
+NEXTCLOUD_SKIP_DATABASE_OPTIMIZATION: "no"        # Setting this to "yes" allows to skip the database optimizations after updating the Nextcloud archive which reduces the downtime. However database optimization needs to be run manually then after the update is gone through.
+NEXTCLOUD_APP_STORE_URL:          # This allows to configure the Nextcloud App store URL inside Nextcloud. Defaults to 'https://apps.nextcloud.com/api/v1'. You can disable the app store feature completely by setting the string to 'no' ⚠️ Please note that the automatic downloading of the integrations app for additional components like whiteboard, talk, collabora, onlyoffice, notify-push and co will not work in that case anymore. See https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/values.yaml-ARCHIVES_PVC_NAME-for-local-archives for that case.
+NEXTCLOUD_PERSIST_DATABASE_CONNECTIONS: "no"          #  Setting this to "yes" allows to enable persistent db connections inside Nextcloud and might improve the performance. ⚠️ However, enabling database persistent connection must be done carefully as if misconfigured it can overload the database, with too many php-fpm children processes in regard to the number of connections allowed on the database side. 
+COLLABORA_HOST: nextcloud-enterprise-collabora        # Setting this to something else than 'nextcloud-enterprise-collabora' will allow you to use an external service.
+CLAMAV_BLOCKLISTED_DIRECTORIES:          # This allows to configure blocklisted directories in files antivirus. It expects a string like "['dont-scan', 'donotscan', 'second-dir']"
+TALK_HOST: nextcloud-enterprise-talk        # Setting this to something else than 'nextcloud-enterprise-talk' will allow you to use an external service.
+TALK_HPB_PATH: /standalone-signaling/          # If TALK_HOST is set to something else than 'nextcloud-enterprise-talk' this allows to set the path to the signaling server in TALK_HOST.
+# SIGNALING_SECRET:           # This allows to set the signaling password which is getting set at the very top of this values.yaml file.
+# TALK_INTERNAL_SECRET:           # This allows to set the internal signaling password which is getting set at the very top of this values.yaml file.
+TURN_DOMAIN:         # This allows to adjust the domain that will be configured as stun/turn domain inside Nextcloud
+FULLTEXTSEARCH_HOST: nextcloud-enterprise-fulltextsearch        # Setting this to something else than 'nextcloud-enterprise-fulltextsearch' will allow you to use an external service.
+FULLTEXTSEARCH_PROTOCOL: http          # This allows to adjust the protocol that will be used to connect Nextcloud to the elasticsearch service. ⚠️ Please note that the built-in fulltextsearch deployment only supports the default "http"!
+FULLTEXTSEARCH_PORT: 9200          # This allows to adjust the port that will be used to connect Nextcloud to the elasticsearch service. ⚠️ Please note that the built-in fulltextsearch deployment only supports the default port 9200!
+FULLTEXTSEARCH_USER: elastic          # This allwows to adjust the fulltextsearch user that will be used to connect Nextcloud to the Elasticsearch instance ⚠️ Please note that the built-in fulltextsearch deployment only supports the default user 'elastic'!
+# FULLTEXTSEARCH_PASSWORD:           # This allows to set the fulltextsearch password which is getting set at the very top of this values.yaml file.
+FULLTEXTSEARCH_INDEX: nextcloud-aio          # This allows to adjust the fulltextsearch index that will be used.
+ONLYOFFICE_HOST: nextcloud-enterprise-onlyoffice        # Setting this to something else than 'nextcloud-enterprise-onlyoffice' will allow you to use an external service.
+# ONLYOFFICE_SECRET:           # This allows to set the Onlyoffice password which is getting set at the very top of this values.yaml file.
+VPA_ENABLED: "yes"        # This allows to disable the VerticalPodAutoscaler which is enabled by default by setting it to something else than "yes" (with quotes)
+MAX_REPLICAS: &MAX_REPLICAS 10        # This allows to adjust the max replica setting in the HPA. Set it to 1 if you want to disable the HPA.
+RPSS_ENABLED: "no"         # By setting this to "yes", you can make the chart compatible with the Restricted Pod Security Standard. ⚠️ Warning: some bundled container like collabora, fulltextseach and onlyoffice are known to not work with RPSS enabled. They need to be disabled in this chart and get provided externally if you need those. See https://github.com/nextcloud-gmbh/enterprise-aio/tree/main/nextcloud-enterprise-helm-chart#scalable-full-nextcloud-hub-installation
+IMAGE_PULL_SECRET:        # This allows to configure a pull secret for all images when used with a private image repository for example. The pull secret needs to be specified for the nginx subchart manually as well if you need this.
+ENTERPRISE_ARCHIVE_URL: https://download.nextcloud.com/.customers/server/33.0.5-674acdae/nextcloud-33.0.5-enterprise.zip
+HTTP_PROXY:        # This allows set the http proxy value in Nextcloud for outgoing connections
+PROXY_EXCLUDE:        # This allows to add a host or a comma-separated list of hosts to the proxy exclude list in Nextcloud
+ARCHIVES_PVC_NAME:        # Instead of downloading the archive from ENTERPRISE_ARCHIVE_URL, you can set this variable which will mount the given PVC name into the management container. It needs to contain the enterprise-archive as zip file in the root. The file needs to be named like this: 'nextcloud-28.0.4-enterprise.zip' like it is originally. You need to specify the name of the archive by using the ENTERPRISE_ARCHIVE_URL variable. Make sure to create and populate the volume before starting this helm chart as it will otherwise fail to. Also make sure that the linux permissions are set correctly and every user can read the file.
+AIRGAPPED:        # Setting this to "yes" (with quotes) will automatically set the values has_internet_connection, updatechecker and has_valid_subscription correctly inside Nextclouds config.php for airgapped environments.
+DISABLE_BRUTEFORCE_PROTECTION: "no"         # Setting this to "yes" (with quotes) disables the bruteforce protection and ratelimit protection in Nextcloud. ⚠️⚠️⚠️ Warning: only do this if you are not in control over the network and there is no way the correct ip-address is kept in requests. Usually Adjusting ADDITIONAL_TRUSTED_PROXY is the correct way of fixing this problem!
+
+SERVICE_ACCOUNT: &SERVICE_ACCOUNT "default"          # This allows to set a custom service account for all deployments. ⚠️ The service account must already be existing!
+NEXTCLOUD_UGID: &NEXTCLOUD_UGID 33          # This allows to configure the UID and GID that is used for the Nextcloud, Nextcloud-Management, Notify-Push and Apache deployments.
+REDIS_UGID: 999          # This allows to configure the UID and GID that is used for the Redis deployment
+POSTGRES_UGID: 999          # This allows to configure the UID and GID that is used for the Database deployment
+TALK_RECORDING_UGID: 122          # This allows to configure the UID and GID that is used for the Talk-Recording deployment
+IMAGINARY_UGID: 65534          # This allows to configure the UID and GID that is used for the Imaginary deployment
+CLAMAV_UGID: 100          # This allows to configure the UID and GID that is used for the ClamAV deployment
+TALK_UGID: 1000          # This allows to configure the UID and GID that is used for the Talk deployment
+WHITEBOARD_UGID: 65534          # This allows to configure the UID and GID that is used for the Whiteboard deployment
+
+NEXTCLOUD_TRUSTED_CERTIFICATES:          # This allows to configure custom certificates that will be added to Nextcloud's trusted certificate store during runtime. See https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/How-to-add-custom-certificates or the local article at '../docs/How to add custom certificates.md'
+
+APACHE_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+CLAMAV_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+COLLABORA_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+DATABASE_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+EUROOFFICE_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+FULLTEXTSEARCH_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+IMAGINARY_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+NEXTCLOUD_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+NEXTCLOUD_MANAGEMENT_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+NOTIFY_PUSH_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+ONLYOFFICE_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+REDIS_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+TALK_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+TALK_RECORDING_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+WHITEBOARD_RESOURCES:        # This is an array key and can be used to configure resources. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container
+
+APACHE_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+CLAMAV_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+COLLABORA_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+DATABASE_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+EUROOFFICE_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+FULLTEXTSEARCH_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+IMAGINARY_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+NEXTCLOUD_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+NEXTCLOUD_MANAGEMENT_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+NOTIFY_PUSH_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+ONLYOFFICE_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+REDIS_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+TALK_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+TALK_RECORDING_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+WHITEBOARD_ADDITIONAL_ANNOTATIONS_AND_LABELS:        # This is an array key and can be used to configure annotations and limits. See the Portal article https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+
+PVC_LABELS:        # Optional map of extra labels to add to all PVCs and PVs that use STORAGE_CLASS. Useful for backup tools (e.g. velero, k8up). Example: {backup.velero.io/include-resources: pvc}
+PVC_LABELS_DATA:        # Optional map of extra labels for the Nextcloud data PVC/PV when STORAGE_CLASS_DATA is set. Falls back to PVC_LABELS if not configured.
+USE_PVS: "no"         # Setting this to "yes" (with quotes) allows to enable the usage of PVs and use NFS at the same time inside these. Please note that currently only NFS for these is supported, not local storage. ⚠️ Make sure to also set STORAGE_CLASS to a custom class that does not exist on your cluster yet.
+NFS_SERVER: &NFS_SERVER        # This allows to set a domain for a nfs server (add the domain behind &NFS_SERVER) if you plan to use that instead of persistentvolumeclaims. The subfolders need to be created on the nfs server manually beforehand. Make also sure to modify the extraVolumes block in the nginx subchart config at the bottom of this file.
+NFS_PREFIX:          # This allows to set a prefix for the nfs server to store multiple different instance on one NFS server. It needs to have a leading slash and not have a trailing slash. Make also sure to modify the extraVolumes block in the nginx subchart config at the bottom of this file.
+HOST_PATH:         # This allows to configure a host path if you plan to use that instead of persistentvolumeclaims or nfs server. The subfolders need to be created manually beforehand. Make also sure to modify the extraVolumes block in the nginx subchart config at the bottom of this file.
+OBJECTSTORE_S3_BUCKET:        # The name of the bucket that Nextcloud should store the data in
+OBJECTSTORE_S3_REGION:        # The region that the S3 bucket resides in
+OBJECTSTORE_S3_HOST:        # The hostname of the object storage server
+OBJECTSTORE_S3_PORT:        # The port that the object storage server is being served over
+OBJECTSTORE_S3_KEY:        # AWS style access key. This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+OBJECTSTORE_S3_SECRET:        # AWS style secret access key. This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+OBJECTSTORE_S3_STORAGE_CLASS:        # The storage class to use when adding objects to the bucket
+OBJECTSTORE_S3_SSL:        # (default: true): Whether or not SSL/TLS should be used to communicate with object storage server
+OBJECTSTORE_S3_USEPATH_STYLE:        # (default: false): Not required for AWS S3
+OBJECTSTORE_S3_LEGACYAUTH:        # (default: false): Not required for AWS S3
+OBJECTSTORE_S3_OBJECT_PREFIX:        # (default: urn:oid:): Prefix to prepend to the fileid
+OBJECTSTORE_S3_MULTIBUCKET:          # (default: false): Allow to use the multibucket feature
+OBJECTSTORE_S3_NUM_BUCKETS:        # (default: 64): The total amount of buckets that Nextcloud should store the data in
+OBJECTSTORE_S3_REQUEST_CHECKSUM_VALIDATION:          # (default: 'when_required'. Alternatively possible is 'when_supported'): Data Integrity Protections for Amazon S3 (https://docs.aws.amazon.com/sdkref/latest/guide/feature-dataintegrity.html)
+OBJECTSTORE_S3_RESPONSE_CHECKSUM_VALIDATION:          # (default: 'when_required'. Alternatively possible is 'when_supported'): Data Integrity Protections for Amazon S3 (https://docs.aws.amazon.com/sdkref/latest/guide/feature-dataintegrity.html)
+OBJECTSTORE_S3_AUTOCREATE:        # (default: true): Create the container if it does not exist
+OBJECTSTORE_S3_SSE_C_KEY:        # (not set by default): Base64 encoded key with a maximum length of 32 bytes for server side encryption (SSE-C). This needs to be a unique and good password or a secret name if you enable USE_SECRETS at the top of the file.
+
+NGINX_ENABLE_HSTS: "yes"        # Setting this to "yes" (with quotes) enables the hsts header in the included nginx config. You can set it to something else to disable it, e.g. if you are using nginx-ingress and want to use the default hsts that it sends
+INGRESS_ENABLED: "no"           # Settings this to "yes" (with quotes) enables the ingress which will point to APACHE_HOST on port APACHE_PORT
+INGRESS_CLUSTER_ISSUER: "letsencrypt-prod"        # This allows to set the cluster issuer that will be used for the ingress
+INGRESS_CLASS_NAME: "nginx"            # This allows to set the ingress class name that will be used for the ingress
+OPENSHIFT_ROUTE_ENABLED: "no"          # Setting this to "yes" (with quotes) enables an OpenShift Route (route.openshift.io/v1) instead of a standard Kubernetes Ingress. Use this on OpenShift clusters with the default HAProxy-based ingress router. ⚠️ Do not set both INGRESS_ENABLED and OPENSHIFT_ROUTE_ENABLED to "yes" at the same time!
+
+# Optional sub-chart to replace the default apache with a scalable nginx server.
+# It requires the NGINX Ingress Controller (or alternatively ingress-nginx) and cert-manager for automatic TLS.
+# Otherwise, provide a custom external TLS reverse proxy and change service.type to "LoadBalancer".
+#
+# Requirements:
+#   - Set nginx.enable to true
+#   - Set APACHE_HOST to "nextcloud-enterprise-nginx" (keep the '&APACHE_HOST' before the actual value)
+#   - Ensure that NAMESPACE contains the &NAMESPACE anchor to link both values
+#     or adjust it manually for the sub-chart
+#     ('NAMESPACE' and 'nginx.namespaceOverride' should match)
+#
+# For TLS via NGINX Ingress Controller (or ingress-nginx) and cert-manager:
+#   - Set INGRESS_ENABLED to "yes"
+#
+# Please refer to the chart's readme for more information on all values:
+# https://github.com/bitnami/charts/tree/main/bitnami/nginx/
+nginx:
+  enabled: false # Set this to true in order to enable the subchart
+
+  image:
+    registry: ghcr.io # Set this if you use a custom registry (default: ghcr.io)
+    repository: nextcloud-releases/nce-nginx # Set this if you use a custom repository (default: nextcloud-releases/nce-nginx)
+    tag: "20260623_125920" # This is the date tag used. Should be updated regularly. See https://github.com/nextcloud-gmbh/enterprise-aio/tree/main/nextcloud-enterprise-helm-chart#how-to-update
+    # pullSecrets: # Uncomment if you need to use a pull secret for the subchart
+    #   - $IMAGE_PULL_SECRET # Adjust the string to the secret name that you want to use
+
+  # The following global config is needed due to changing the repo to the bitnamisecure one.
+  global:
+    security:
+      allowInsecureImages: true
+
+  service:
+    type: ClusterIP  # Should be "LoadBalancer" if no ingress is used
+
+  extraVolumes:
+    - name: nextcloud-enterprise-nextcloud
+# { if not NFS_SERVER and not HOST_PATH }
+      persistentVolumeClaim: # Comment if you plan to use NFS_SERVER
+        claimName: nextcloud-enterprise-nextcloud # Comment if you plan to use NFS_SERVER
+# { else if not HOST_PATH }
+      # nfs:
+      #   server: *NFS_SERVER # Should match NFS_SERVER
+      #   path: $NFS_PREFIX/nextcloud-enterprise-nextcloud # $NFS_PREFIX needs to be adjusted to match the configured value.
+# { else }
+      # hostPath:
+      #   path: $HOST_PATH/nextcloud-enterprise-nextcloud # HOST_PATH needs to be manually edited and set here as well
+      #   type: Directory
+# { end }
+
+  resourcesPreset: medium # You can adjust the resources with this string. See https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl.
+
+  podLabels:
+    io.kompose.service: nextcloud-enterprise-nginx # This is required for the system to work correctly, so do not modify this!
+    # additional-label1: value1 # See https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+
+  # podAnnotations: # Uncomment this if you need to add annotations to the nginx pod. See https://portal.nextcloud.com/article/Scalability/Enterprise-AIO/Annotations-and-labels or the local article at '../docs/Annotations and labels.md'
+    # additional-anntotation1: value1
+
+### Values below should not be changed unless you know what you are doing! ###
+
+  fullnameOverride: *APACHE_HOST
+  namespaceOverride: *NAMESPACE
+
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: *MAX_REPLICAS 
+    targetCPU: 60
+    targetMemory: 60
+
+  containerSecurityContext:
+    runAsUser: *NEXTCLOUD_UGID
+    runAsGroup: *NEXTCLOUD_UGID
+
+  serviceAccount:
+    create: false
+    name: *SERVICE_ACCOUNT
+
+  podSecurityContext:
+    fsGroupChangePolicy: OnRootMismatch
+
+  containerPorts:
+    http: 8080
+    https: null
+
+  extraVolumeMounts:
+    - name: nextcloud-enterprise-nextcloud
+      mountPath: /var/www/html
+
+  existingServerBlockConfigmap: nextcloud-enterprise-nginx-configmap
+
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+    enabled: false
+
+  customReadinessProbe:
+    tcpSocket:
+      port: 8080
+    initialDelaySeconds: 15
+    periodSeconds: 10
+  customLivenessProbe:
+    tcpSocket:
+      port: 8080
+    initialDelaySeconds: 15
+    periodSeconds: 10
+

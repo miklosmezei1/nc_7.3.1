@@ -1,0 +1,19 @@
+{{- if eq .Values.REDIS_HOST "nextcloud-enterprise-redis" }}
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: nextcloud-enterprise-redis
+  name: nextcloud-enterprise-redis
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  ipFamilyPolicy: PreferDualStack
+  ports:
+    - name: "6379"
+      port: 6379
+      targetPort: 6379
+  selector:
+    io.kompose.service: nextcloud-enterprise-redis
+{{- end }}

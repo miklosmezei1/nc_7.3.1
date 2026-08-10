@@ -1,0 +1,179 @@
+---
+- name: Set up K3s on an Ubuntu VM for developing Enterprise AIO
+  hosts:
+    - cluster
+  become: true
+  become_user: root
+  # Set remote_user if different on Ubuntu VM (created during install)
+  #remote_user: <user-name>
+
+  vars:
+    # Enter you tailscale auth key from https://login.tailscale.com/admin/machines/new-linux
+    # (Copy it from the install script at the bottom)
+    tailscaleAuthKey: tskey-auth-...
+    # Can be swapped with a random one but works by default
+    password: 0e1d3d951ecb5849fe312feb6e8cec733cb9
+    # Namespace to install the chart into. This allows installing multiple instances in one Ubuntu VM.
+    # Please keep in mind that Tailscale will only provide a single domain so only a single
+    # instance of the chart will be accessible via the domain.
+    namespace: eaio1
+
+  tasks:
+    - name: Download Tailscale install script
+      ansible.builtin.get_url:
+        url: https://tailscale.com/install.sh
+        dest: /root/install-tailscale.sh
+        mode: '755'
+
+    - name: Install Tailscale
+      ansible.builtin.shell: /root/install-tailscale.sh
+      args:
+        creates: /usr/bin/tailscale
+
+    - name: Connect to your Tailnet
+      ansible.builtin.shell: tailscale up --auth-key={{ tailscaleAuthKey }}
+
+    - name: Download K3s install script
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /root/install-k3s.sh
+        mode: '755'
+
+    - name: Install K3s
+      ansible.builtin.shell: INSTALL_K3S_EXEC="--disable=traefik --disable=servicelb" /root/install-k3s.sh
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Ensure that /root/.kube exists
+      ansible.builtin.file:
+        path: /root/.kube
+        state: directory
+
+    - name: Copy kube config
+      ansible.builtin.copy:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /root/.kube/config
+        remote_src: true
+
+    - name: Wait for K3s to be ready
+      ansible.builtin.shell: kubectl get node | grep -q Ready
+      register: result
+      until: result.rc == 0
+      retries: 100
+      delay: 5
+
+    - name: Download Helm install script
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        dest: /root/install-helm.sh
+        mode: '755'
+
+    - name: Install Helm
+      ansible.builtin.shell: /root/install-helm.sh
+      args:
+        creates: /usr/local/bin/helm
+
+    - name: Install nfs-common for RWX volumes
+      ansible.builtin.apt:
+        name: nfs-common
+        state: present
+        update_cache: true
+
+    - name: Add stable chart repo
+      kubernetes.core.helm_repository:
+        name: longhorn
+        repo_url: https://charts.longhorn.io
+
+    - name: Install Longhorn
+      kubernetes.core.helm:
+        name: longhorn
+        chart_ref: longhorn/longhorn
+        chart_version: 1.10.0
+        release_namespace: longhorn-system
+        create_namespace: true
+        values:
+          persistence:
+            defaultClass: false
+            defaultClassReplicaCount: 1
+
+    - name: Wait for Longhorn to be ready
+      ansible.builtin.shell: "! (kubectl -n longhorn-system get pod --output=jsonpath='{.items[*].status.phase}' | sed -E 's/Running//g' | grep -q '[a-zA-Z]')"
+      register: result
+      until: result.rc == 0
+      retries: 100
+      delay: 5
+
+    - name: Copy enterprise-aio git repo
+      ansible.builtin.copy:
+        src: ../nextcloud-enterprise-helm-chart
+        dest: /root
+
+    - name: Extract the Tailnet domain name of the cluster
+      ansible.builtin.shell: tailscale status --self --json | jq -r .Self.DNSName | sed -E 's/\.$//'
+      register: tailnet_domain
+
+    - name: Deploy Enterprise-AIO chart
+      kubernetes.core.helm:
+        name: "{{ namespace }}"
+        chart_ref: /root/nextcloud-enterprise-helm-chart
+        release_namespace: default
+        dependency_update: true
+        values_files:
+          - /root/nextcloud-enterprise-helm-chart/values.yaml
+        values:
+          USE_SECRETS: "no"
+          DATABASE_PASSWORD: "{{ password }}"
+          EUROOFFICE_SECRET: "{{ password }}"
+          FULLTEXTSEARCH_PASSWORD: "{{ password }}"
+          IMAGINARY_SECRET: "{{ password }}"
+          NEXTCLOUD_PASSWORD: "{{ password }}"
+          ONLYOFFICE_SECRET: "{{ password }}"
+          RECORDING_SECRET: "{{ password }}"
+          REDIS_PASSWORD: "{{ password }}"
+          SIGNALING_SECRET: "{{ password }}"
+          TALK_INTERNAL_SECRET: "{{ password }}"
+          TURN_SECRET: "{{ password }}"
+          WHITEBOARD_SECRET: "{{ password }}"
+          NC_DOMAIN: "{{ tailnet_domain.stdout }}"
+          STORAGE_CLASS: longhorn
+          STORAGE_CLASS_DATA: longhorn
+          NAMESPACE: "{{ namespace }}"
+          VPA_ENABLED: "no"
+          APACHE_HOST: nextcloud-enterprise-nginx
+          nginx:
+            enabled: true
+            namespaceOverride: "{{ namespace }}"
+            fullnameOverride: nextcloud-enterprise-nginx
+            service:
+              type: LoadBalancer
+
+    - name: Install python3-kubernetes for the ansible tasks
+      ansible.builtin.apt:
+        name: python3-kubernetes
+        state: present
+
+    - name: Get the Nginx service from K8s
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Service
+        name: nextcloud-enterprise-nginx
+        namespace: "{{ namespace }}"
+      register: nginx_service
+
+    - name: Serve tailscale
+      ansible.builtin.shell: tailscale funnel --bg {{ nginx_service.resources[0].spec.ports[0].nodePort }}
+
+    - name: Wait for Nextcloud to be installed
+      ansible.builtin.shell: curl -fsSL https://{{ tailnet_domain.stdout }}/status.php | grep -qE '"installed"\s*:\s*true'
+      register: result
+      until: result.rc == 0
+      retries: 180
+      delay: 10
+
+    - name: Print information about Enterprise-AIO
+      ansible.builtin.debug:
+        msg:
+          - The Nextcloud server can be reached at https://{{ tailnet_domain.stdout }}
+          - You can login with user admin and password {{ password }}
+          - "Make sure to connect your client to your Tailnet first: https://github.com/nextcloud-gmbh/enterprise-aio/blob/main/develop.md#add-your-client-and-your-server-to-your-tailnet"
+

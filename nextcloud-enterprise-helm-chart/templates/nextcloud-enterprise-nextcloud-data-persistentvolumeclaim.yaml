@@ -1,0 +1,55 @@
+{{- if (or (eq (.Values.USE_PVS | default "no") "yes") (not (or .Values.NFS_SERVER .Values.HOST_PATH))) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: nextcloud-enterprise-nextcloud-data
+    {{- if and .Values.STORAGE_CLASS_DATA .Values.PVC_LABELS_DATA }}
+    {{- toYaml .Values.PVC_LABELS_DATA | nindent 4 }}
+    {{- else if .Values.PVC_LABELS }}
+    {{- toYaml .Values.PVC_LABELS | nindent 4 }}
+    {{- end }}
+  name: nextcloud-enterprise-nextcloud-data
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  {{- if .Values.STORAGE_CLASS_DATA }}
+  storageClassName: {{ .Values.STORAGE_CLASS_DATA }}
+  {{- else if .Values.STORAGE_CLASS }}
+  storageClassName: {{ .Values.STORAGE_CLASS }}
+  {{- end }}
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.NEXTCLOUD_DATA_STORAGE_SIZE }}
+  {{- if eq (.Values.USE_PVS | default "no") "yes" }}
+  volumeName: "nextcloud-enterprise-nextcloud-data-{{ .Values.NAMESPACE }}"
+  {{- end }}
+{{- if eq (.Values.USE_PVS | default "no") "yes" }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: "nextcloud-enterprise-nextcloud-data-{{ .Values.NAMESPACE }}"
+  {{- if and .Values.STORAGE_CLASS_DATA .Values.PVC_LABELS_DATA }}
+  labels:
+    {{- toYaml .Values.PVC_LABELS_DATA | nindent 4 }}
+  {{- else if .Values.PVC_LABELS }}
+  labels:
+    {{- toYaml .Values.PVC_LABELS | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.STORAGE_CLASS_DATA }}
+  storageClassName: {{ .Values.STORAGE_CLASS_DATA }}
+  {{- else if .Values.STORAGE_CLASS }}
+  storageClassName: {{ .Values.STORAGE_CLASS }}
+  {{- end }}
+  capacity:
+      storage: {{ .Values.NEXTCLOUD_DATA_STORAGE_SIZE }}
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    path: "{{ .Values.NFS_PREFIX }}/nextcloud-enterprise-nextcloud-data"
+    server: "{{ .Values.NFS_SERVER }}"
+{{- end }}
+{{- end }}

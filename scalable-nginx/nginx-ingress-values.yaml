@@ -1,0 +1,24 @@
+# Values for the nginx-ingress-controller helm chart
+## Ref https://docs.nginx.com/nginx-ingress-controller/install/helm/parameters/
+
+controller:
+  enableSnippets: true
+  service:
+    externalTrafficPolicy: Local
+  config:
+    entries:
+      # Some values from ingress-nginx's generated config
+      worker-rlimit-nofile: "1047552"
+      worker-shutdown-timeout: "240s"
+      worker-connections: "16384"
+      server-tokens: "false"
+      http2: "true"
+      http-snippets: |
+        underscores_in_headers off;
+        ignore_invalid_headers on;
+        ssl_reject_handshake off;
+        http2_max_concurrent_streams 128;
+        map $http_x_request_id $req_id {
+          default   $http_x_request_id;
+          ""        $request_id;
+        }

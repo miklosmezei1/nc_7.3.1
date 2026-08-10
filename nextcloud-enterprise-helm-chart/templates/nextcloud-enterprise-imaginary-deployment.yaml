@@ -1,0 +1,99 @@
+{{- if eq .Values.IMAGINARY_ENABLED "yes" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: nextcloud-enterprise-imaginary
+  name: nextcloud-enterprise-imaginary
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: nextcloud-enterprise-imaginary
+  template:
+    metadata:
+      annotations:
+        {{- if .Values.IMAGINARY_ADDITIONAL_ANNOTATIONS_AND_LABELS }}
+        {{- if .Values.IMAGINARY_ADDITIONAL_ANNOTATIONS_AND_LABELS.annotations }}
+        {{- toYaml .Values.IMAGINARY_ADDITIONAL_ANNOTATIONS_AND_LABELS.annotations | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        com.nextcloud.enterprise-aio.version: "v{{ .Chart.Version }}"
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        {{- if .Values.IMAGINARY_ADDITIONAL_ANNOTATIONS_AND_LABELS }}
+        {{- if .Values.IMAGINARY_ADDITIONAL_ANNOTATIONS_AND_LABELS.labels }}
+        {{- toYaml .Values.IMAGINARY_ADDITIONAL_ANNOTATIONS_AND_LABELS.labels | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        io.kompose.service: nextcloud-enterprise-imaginary
+    spec:
+      {{- if .Values.SERVICE_ACCOUNT }}
+      serviceAccountName: "{{ .Values.SERVICE_ACCOUNT }}"
+      {{- end }}
+      {{- if .Values.IMAGE_PULL_SECRET }}
+      imagePullSecrets:
+        - name: {{ .Values.IMAGE_PULL_SECRET }}
+      {{- end }}
+      securityContext:
+        # The items below only work in pod context
+        fsGroup: {{ .Values.IMAGINARY_UGID | default 65534 }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        # The items below work in both contexts
+        runAsUser: {{ .Values.IMAGINARY_UGID | default 65534 }}
+        runAsGroup: {{ .Values.IMAGINARY_UGID | default 65534 }}
+        runAsNonRoot: true
+        {{- if eq (.Values.RPSS_ENABLED | default "no") "yes" }}
+        seccompProfile:
+          type: RuntimeDefault
+        {{- end }}
+      containers:
+        - env:
+            - name: AIO_LOG_LEVEL
+              value: "{{ .Values.AIO_LOG_LEVEL }}"
+            - name: IMAGINARY_SECRET
+              {{- if eq (.Values.USE_SECRETS | default "no") "yes" }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.IMAGINARY_SECRET }} 
+                  key:  {{ .Values.IMAGINARY_SECRET }} 
+              {{- else }}
+              value: {{ .Values.IMAGINARY_SECRET | quote }}
+              {{- end }}
+            - name: TZ
+              value: "{{ .Values.TIMEZONE }}"
+          image: "{{ .Values.IMAGE_MIRROR_PREFIX }}{{ .Values.NEXTCLOUD_IMAGE_ORG }}/aio-imaginary:20260609_115915"
+          {{- if .Values.IMAGINARY_RESOURCES }}
+          resources:
+            {{- toYaml .Values.IMAGINARY_RESOURCES | nindent 12 }}
+          {{- end }}
+          readinessProbe:
+            exec:
+              command:
+                - /healthcheck.sh
+            failureThreshold: 3
+            periodSeconds: 30
+            timeoutSeconds: 30
+          livenessProbe:
+            exec:
+              command:
+                - /healthcheck.sh
+            failureThreshold: 3
+            periodSeconds: 30
+            timeoutSeconds: 30
+          name: nextcloud-enterprise-imaginary
+          ports:
+            - containerPort: 9000
+              protocol: TCP
+          securityContext:
+            # The items below only work in container context
+            allowPrivilegeEscalation: false
+            capabilities:
+              {{- if eq (.Values.RPSS_ENABLED | default "no") "yes" }}
+              drop: ["ALL"]
+              {{- else }}
+              drop: ["NET_RAW"]
+              {{- end }}
+{{- end }}

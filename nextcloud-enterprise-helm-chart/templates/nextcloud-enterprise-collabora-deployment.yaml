@@ -1,0 +1,93 @@
+{{- if and (eq .Values.COLLABORA_HOST "nextcloud-enterprise-collabora") (eq .Values.COLLABORA_ENABLED "yes") }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: nextcloud-enterprise-collabora
+  name: nextcloud-enterprise-collabora
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: nextcloud-enterprise-collabora
+  template:
+    metadata:
+      annotations:
+        {{- if .Values.COLLABORA_ADDITIONAL_ANNOTATIONS_AND_LABELS }}
+        {{- if .Values.COLLABORA_ADDITIONAL_ANNOTATIONS_AND_LABELS.annotations }}
+        {{- toYaml .Values.COLLABORA_ADDITIONAL_ANNOTATIONS_AND_LABELS.annotations | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        com.nextcloud.enterprise-aio.version: "v{{ .Chart.Version }}"
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        {{- if .Values.COLLABORA_ADDITIONAL_ANNOTATIONS_AND_LABELS }}
+        {{- if .Values.COLLABORA_ADDITIONAL_ANNOTATIONS_AND_LABELS.labels }}
+        {{- toYaml .Values.COLLABORA_ADDITIONAL_ANNOTATIONS_AND_LABELS.labels | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        io.kompose.service: nextcloud-enterprise-collabora
+    spec:
+      {{- if .Values.SERVICE_ACCOUNT }}
+      serviceAccountName: "{{ .Values.SERVICE_ACCOUNT }}"
+      {{- end }}
+      {{- if .Values.IMAGE_PULL_SECRET }}
+      imagePullSecrets:
+        - name: {{ .Values.IMAGE_PULL_SECRET }}
+      {{- end }}
+      containers:
+        - args: {{ .Values.ADDITIONAL_COLLABORA_OPTIONS | default list | toJson }}
+          {{- if .Values.COLLABORA_RESOURCES }}
+          resources:
+            {{- toYaml .Values.COLLABORA_RESOURCES | nindent 12 }}
+          {{- end }}
+          env:
+            - name: AIO_LOG_LEVEL
+              value: "{{ .Values.AIO_LOG_LEVEL }}"
+            - name: DONT_GEN_SSL_CERT
+              value: "1"
+            - name: TZ
+              value: "{{ .Values.TIMEZONE }}"
+            - name: aliasgroup1
+              value: https://{{ .Values.NC_DOMAIN }}:443,http://nextcloud-enterprise-apache.nextcloud-enterprise:23973
+            - name: dictionaries
+              value: "{{ .Values.COLLABORA_DICTIONARIES }}"
+            - name: extra_params
+              value: --o:ssl.enable=false --o:ssl.termination=true --o:logging.disable_server_audit=true --o:welcome.enable=false --o:fetch_update_check=0 --o:allow_update_popup=false --o:remote_font_config.url=https://{{ .Values.NC_DOMAIN }}/apps/richdocuments/settings/fonts.json --o:net.post_allow.host[0]=.+
+            - name: server_name
+              value: "{{ .Values.NC_DOMAIN }}"
+          {{- if contains "--o:support_key=" (join " " (.Values.ADDITIONAL_COLLABORA_OPTIONS | default list)) }}
+          image: "{{ .Values.IMAGE_MIRROR_PREFIX }}{{ .Values.NEXTCLOUD_IMAGE_ORG }}/aio-collabora-online:20260609_115915"
+          {{- else }}
+          image: "{{ .Values.IMAGE_MIRROR_PREFIX }}{{ .Values.NEXTCLOUD_IMAGE_ORG }}/aio-collabora:20260609_115915"
+          {{- end }}
+          readinessProbe:
+            exec:
+              command:
+                - /healthcheck.sh
+            failureThreshold: 9
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 30
+          livenessProbe:
+            exec:
+              command:
+                - /healthcheck.sh
+            failureThreshold: 9
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 30
+          name: nextcloud-enterprise-collabora
+          ports:
+            - containerPort: 9980
+              protocol: TCP
+          securityContext:
+            capabilities:
+              add:
+                - CAP_SYS_ADMIN
+                - SYS_CHROOT
+                - FOWNER
+                - CHOWN
+{{- end }}

@@ -1,0 +1,53 @@
+{{- if eq (.Values.OPENSHIFT_ROUTE_ENABLED | default "no") "yes" }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: nextcloud-enterprise-route
+  namespace: "{{ .Values.NAMESPACE }}"
+  annotations:
+    # Allow large file uploads matching APACHE_MAX_SIZE
+    haproxy.router.openshift.io/proxy-body-size: "{{ .Values.APACHE_MAX_SIZE }}"
+    # Match the upload/request timeout to NEXTCLOUD_MAX_TIME
+    haproxy.router.openshift.io/timeout: "{{ .Values.NEXTCLOUD_MAX_TIME }}s"
+    # Disable sticky sessions so requests are distributed across replicas
+    haproxy.router.openshift.io/disable_cookies: "true"
+    # Enable WebSocket support required by Nextcloud Talk and notify_push
+    haproxy.router.openshift.io/websocket-session-timeout: "3600s"
+spec:
+  host: "{{ .Values.NC_DOMAIN }}"
+  to:
+    kind: Service
+    name: "{{ .Values.APACHE_HOST }}"
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+{{- end }}
+{{- if and (eq (.Values.OPENSHIFT_ROUTE_ENABLED | default "no") "yes") .Values.ADDITIONAL_TRUSTED_DOMAIN }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: nextcloud-enterprise-route-additional
+  namespace: "{{ .Values.NAMESPACE }}"
+  annotations:
+    haproxy.router.openshift.io/proxy-body-size: "{{ .Values.APACHE_MAX_SIZE }}"
+    haproxy.router.openshift.io/timeout: "{{ .Values.NEXTCLOUD_MAX_TIME }}s"
+    haproxy.router.openshift.io/disable_cookies: "true"
+    haproxy.router.openshift.io/websocket-session-timeout: "3600s"
+spec:
+  host: "{{ .Values.ADDITIONAL_TRUSTED_DOMAIN }}"
+  to:
+    kind: Service
+    name: "{{ .Values.APACHE_HOST }}"
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+{{- end }}

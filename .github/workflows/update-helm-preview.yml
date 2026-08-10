@@ -1,0 +1,67 @@
+name: Update Helm Chart Preview
+
+on:
+  pull_request:
+    paths:
+      - nextcloud-enterprise-helm-chart/update-helm.sh
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  update-helm:
+    name: update helm chart and upload preview archive
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: update helm chart
+        run: |
+          set -x
+          GHCR_TOKEN="$(curl https://ghcr.io/token?scope=repository:nextcloud-releases/nce-php-fpm-mgmt:pull | jq '.token' | sed 's|"||g')"
+          DOCKER_TAG="$(curl -H "Authorization: Bearer ${GHCR_TOKEN}" -L -s 'https://ghcr.io/v2/nextcloud-releases/nce-php-fpm-mgmt/tags/list?page_size=1024' | jq '.tags' | sed 's|"||g;s|[[:space:]]||g;s|,||g' | grep '^20[0-9_]\+' | grep -v latest | sort -r | head -1)"
+          if [ -z "$DOCKER_TAG" ]; then
+            exit 1
+          fi
+          set +x
+
+      - name: detect chart changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain nextcloud-enterprise-helm-chart)" ]; then
+            echo 'Chart changed'
+            echo 'chart-changed=true' >> $GITHUB_OUTPUT
+          else
+            echo 'Chart did not change'
+            echo 'chart-changed=false' >> $GITHUB_OUTPUT
+          fi
+
+      - name: upload updated helm chart
+        id: upload
+        if: steps.changes.outputs.chart-changed == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: nextcloud-enterprise-helm-chart-${{ github.event.number }}
+          path: |
+            nextcloud-enterprise-helm-chart
+            !nextcloud-enterprise-helm-chart/update-helm.sh
+            !nextcloud-enterprise-helm-chart/readme.md
+            !nextcloud-enterprise-helm-chart/.gitignore
+          retention-days: 2
+          overwrite: true
+
+      - name: add comment with preview url
+        if: steps.changes.outputs.chart-changed == 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '[Download Helm chart preview](${{ steps.upload.outputs.artifact-url }})'
+            })

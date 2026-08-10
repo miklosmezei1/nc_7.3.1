@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: nextcloud-enterprise-notify-push
+  name: nextcloud-enterprise-notify-push
+  namespace: "{{ .Values.NAMESPACE }}"
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: nextcloud-enterprise-notify-push
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        {{- if .Values.NOTIFY_PUSH_ADDITIONAL_ANNOTATIONS_AND_LABELS }}
+        {{- if .Values.NOTIFY_PUSH_ADDITIONAL_ANNOTATIONS_AND_LABELS.annotations }}
+        {{- toYaml .Values.NOTIFY_PUSH_ADDITIONAL_ANNOTATIONS_AND_LABELS.annotations | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        com.nextcloud.enterprise-aio.version: "v{{ .Chart.Version }}"
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        {{- if .Values.NOTIFY_PUSH_ADDITIONAL_ANNOTATIONS_AND_LABELS }}
+        {{- if .Values.NOTIFY_PUSH_ADDITIONAL_ANNOTATIONS_AND_LABELS.labels }}
+        {{- toYaml .Values.NOTIFY_PUSH_ADDITIONAL_ANNOTATIONS_AND_LABELS.labels | nindent 8 }}
+        {{- end }}
+        {{- end }}
+        io.kompose.service: nextcloud-enterprise-notify-push
+    spec:
+      {{- if .Values.SERVICE_ACCOUNT }}
+      serviceAccountName: "{{ .Values.SERVICE_ACCOUNT }}"
+      {{- end }}
+      {{- if .Values.IMAGE_PULL_SECRET }}
+      imagePullSecrets:
+        - name: {{ .Values.IMAGE_PULL_SECRET }}
+      {{- end }}
+      securityContext:
+        # The items below only work in pod context
+        fsGroup: {{ .Values.NEXTCLOUD_UGID | default 33 }}
+        fsGroupChangePolicy: "OnRootMismatch"
+        # The items below work in both contexts
+        runAsUser: {{ .Values.NEXTCLOUD_UGID | default 33 }}
+        runAsGroup: {{ .Values.NEXTCLOUD_UGID | default 33 }}
+        runAsNonRoot: true
+        {{- if eq (.Values.RPSS_ENABLED | default "no") "yes" }}
+        seccompProfile:
+          type: RuntimeDefault
+        {{- end }}
+      containers:
+        - env:
+            - name: AIO_LOG_LEVEL
+              value: "{{ .Values.AIO_LOG_LEVEL }}"
+            - name: NEXTCLOUD_HOST
+              value: nextcloud-enterprise-nextcloud-management
+            - name: TZ
+              value: "{{ .Values.TIMEZONE }}"
+          image: "{{ .Values.IMAGE_MIRROR_PREFIX }}{{ .Values.NEXTCLOUD_IMAGE_ORG }}/aio-notify-push:20260609_115915"
+          {{- if .Values.NOTIFY_PUSH_RESOURCES }}
+          resources:
+            {{- toYaml .Values.NOTIFY_PUSH_RESOURCES | nindent 12 }}
+          {{- end }}
+          readinessProbe:
+            exec:
+              command:
+                - /healthcheck.sh
+            failureThreshold: 3
+            periodSeconds: 30
+            timeoutSeconds: 30
+          livenessProbe:
+            exec:
+              command:
+                - /healthcheck.sh
+            failureThreshold: 3
+            periodSeconds: 30
+            timeoutSeconds: 30
+          name: nextcloud-enterprise-notify-push
+          ports:
+            - containerPort: 7867
+              protocol: TCP
+          securityContext:
+            # The items below only work in container context
+            allowPrivilegeEscalation: false
+            capabilities:
+              {{- if eq (.Values.RPSS_ENABLED | default "no") "yes" }}
+              drop: ["ALL"]
+              {{- else }}
+              drop: ["NET_RAW"]
+              {{- end }}
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: nextcloud-enterprise-nextcloud
+              readOnly: true
+      volumes:
+        - name: nextcloud-enterprise-nextcloud
+          {{- if (and .Values.NFS_SERVER (not (eq (.Values.USE_PVS | default "no") "yes"))) }}
+          nfs:
+            server: {{ .Values.NFS_SERVER }}
+            path: "{{ .Values.NFS_PREFIX }}/nextcloud-enterprise-nextcloud"
+          {{- else if .Values.HOST_PATH }}
+          hostPath:
+            path: {{ .Values.HOST_PATH }}/nextcloud-enterprise-nextcloud
+            type: Directory
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: nextcloud-enterprise-nextcloud
+          {{- end }}
