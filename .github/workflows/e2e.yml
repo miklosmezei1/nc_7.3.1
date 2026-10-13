@@ -39,7 +39,7 @@ jobs:
         run: cd nextcloud-enterprise-helm-chart && helm dependency build
 
       - name: Create kind cluster
-        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1.14.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
 
       # Ref https://github.com/kubernetes-sigs/kind/issues/1487#issuecomment-2211072952
       - name: Patch kind's local-path-provisioner for RWX PVCs
